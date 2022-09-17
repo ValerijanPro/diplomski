@@ -1,0 +1,41 @@
+
+
+.myBg-img{
+    
+    background-size: cover;
+    background-repeat: no-repeat;
+   
+    height: 100vh;
+}
+.btn-1{
+    height: 110px;
+    
+}
+.btn-1:hover{
+    background: #ff96ad;
+    box-shadow: 0 0 5px #ff96ad, 0 0 25px #ff96ad, 0 0 50px #ff96ad, 0 0 200px #ff96ad;
+}
+h2{
+    font-size: 2em;
+    letter-spacing: 1px;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+   
+}
+h1{
+    
+    font-size: 3em;
+    letter-spacing: 1px;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    background: url('/assets/images/slika.jpg');
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: text 10s linear infinite;
+}
+
+@keyframes text{
+    from{ background-position: 0% 50%;}
+    to {background-position: 100% 100%;}
+}
