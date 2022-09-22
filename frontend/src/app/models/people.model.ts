@@ -27,6 +27,8 @@ export class PeopleTree{
     highlighted : boolean;
     lines: Line[];
 
+    owner: string;
+
     constructor(private ctx: CanvasRenderingContext2D) {
         this.r = 100;
         this.highlighted = false;

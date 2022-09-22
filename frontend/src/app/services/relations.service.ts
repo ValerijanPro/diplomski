@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -9,8 +10,8 @@ export class RelationsService {
   //f -> father
   //m -> mother
   //c -> child
-
-  constructor() { 
+  uri = 'http://localhost:4000';
+  constructor(private http: HttpClient) { 
   }
 /*  
   parsePath(node,str, gender){
@@ -434,5 +435,15 @@ export class RelationsService {
     }
   }
   return ret;
+ }
+
+ saveNode(node){
+  const data={
+    node: node
+  }
+  return this.http.post(`${this.uri}/ddd`, null);
+ }
+ loadTree(){
+
  }
 }

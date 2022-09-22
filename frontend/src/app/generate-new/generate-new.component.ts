@@ -614,6 +614,15 @@ export class GenerateNewComponent implements OnInit{
     return [sumOfLifespans/numberOfNodes, sumOfChildren/numberOfNodes];
   }
   
+  //save and load
+  saveTree(){
+    this.me.owner = "valjko";
+    console.log("Dobra dan");
+    this.servis.saveNode(this.me).subscribe((e)=>{
+      console.log(e);
+      console.log("Zdravo");
+    })
+  }
 
   //search
   searchTree(){
@@ -782,7 +791,7 @@ export class GenerateNewComponent implements OnInit{
 
           const node = queue.shift(); // mutates the queue
           //node.highlighted = false;
-          console.log(this.delay);
+         // console.log(this.delay);
           if(this.highlightRelatives.includes(node) ) {
             
             if(this.delay<12)node.drawHighlightedGlitter(true);
