@@ -441,7 +441,7 @@ export class RelationsService {
   const data={
     node: node
   }
-  return this.http.post(`${this.uri}/ddd`, null);
+  return this.http.post(`${this.uri}/saveNode`, data);
  }
  loadTree(){
 

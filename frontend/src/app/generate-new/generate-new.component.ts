@@ -293,8 +293,14 @@ export class GenerateNewComponent implements OnInit{
     this.slob= 0;
     this.highlightRelatives = [];
     this.delay = 0;
-   
+    
     this.showStatistics = false;
+  }
+
+  static getAllNodes(){
+    if(GenerateNewComponent.allNodes==null)
+      GenerateNewComponent.allNodes = new Map();
+    return GenerateNewComponent.allNodes;
   }
 
   me : PeopleTree;
@@ -311,6 +317,8 @@ export class GenerateNewComponent implements OnInit{
   errorMissingInformation: string;
   canUndo: boolean;
   undoNode: PeopleTree;
+
+  private static allNodes: Map<Number, PeopleTree>;
 
   female: string;
 
@@ -352,6 +360,7 @@ export class GenerateNewComponent implements OnInit{
   averageNumberOfChildren: number;
   averageLifespan: number;
   
+
 
   isEnglish(){
     return this.language=="English" || this.language==null;
@@ -617,10 +626,13 @@ export class GenerateNewComponent implements OnInit{
   //save and load
   saveTree(){
     this.me.owner = "valjko";
-    console.log("Dobra dan");
+    //console.log("Dobra dan");
+    //let lin = new Line(this.ctx,0,0,1,1,false,"sibling");
+    //this.me.lines.push(lin);
+    //this.me.mother.children = [];
     this.servis.saveNode(this.me).subscribe((e)=>{
-      console.log(e);
-      console.log("Zdravo");
+      //console.log(e); 
+      //console.log("Zdravo");
     })
   }
 
@@ -879,6 +891,7 @@ export class GenerateNewComponent implements OnInit{
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
         this.newPersonPicture, this.newPersonProfession, x,y, ovaj
       );
+      GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     else if(this.newPersonKind == 'father'){
       let ovaj = this.chosenNode;
@@ -890,6 +903,7 @@ export class GenerateNewComponent implements OnInit{
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
         this.newPersonPicture, this.newPersonProfession,x,y, ovaj
         );
+        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     else if(this.newPersonKind == 'sibling'){
       let ovaj = this.chosenNode;
@@ -901,6 +915,7 @@ export class GenerateNewComponent implements OnInit{
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
         this.newPersonPicture, this.newPersonProfession,x,y,ovaj
         );
+        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     else if(this.newPersonKind == 'child'){
       this.undoNode = this.chosenNode.addChild(
@@ -908,6 +923,7 @@ export class GenerateNewComponent implements OnInit{
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
         this.newPersonPicture, this.newPersonProfession,x,y
         );
+        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     else if(this.newPersonKind == 'partner'){
       this.undoNode = this.chosenNode.addPartner(
@@ -915,6 +931,7 @@ export class GenerateNewComponent implements OnInit{
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
         this.newPersonPicture, this.newPersonProfession,x,y
         );
+        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     
     

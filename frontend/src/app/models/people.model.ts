@@ -1,3 +1,4 @@
+import { GenerateNewComponent } from "../generate-new/generate-new.component";
 import { Line } from "./line.model";
 
 export class PeopleTree{
@@ -14,8 +15,8 @@ export class PeopleTree{
     profession: string;
     other: string;
 
-    mother : PeopleTree;
-    father: PeopleTree;
+    mother : number;
+    father: number;
     children: PeopleTree[]; //niz dece, iz razlicitih brakova
     nextSibling: PeopleTree;
     prevSibling: PeopleTree;
@@ -191,13 +192,13 @@ export class PeopleTree{
       koji.lines.push(nova);
 
       let tmp = koji.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
-      koji.mother = tmp;
+      koji.mother = tmp.id;  
       tmp.children.push(koji);
 
       //ako vec postoji tata, onda da ih spojim u vezu
       if(koji.father!=null){
-        koji.father.partner.push(  tmp);
-        tmp.partner .push(koji.father);
+        GenerateNewComponent.getAllNodes().get(koji.father).partner.push(tmp);
+        tmp.partner.push(koji.father);
         
         let t = this.izracunaj(koji.mother.x, koji.mother.y, koji.father.x, koji.father.y);
         let tt = this.izracunaj( koji.father.x, koji.father.y, koji.mother.x, koji.mother.y);
@@ -213,7 +214,7 @@ export class PeopleTree{
       }
       sessionStorage.setItem("language",language);
       return tmp;
-    
+      
     }
     addFather(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj){
       
