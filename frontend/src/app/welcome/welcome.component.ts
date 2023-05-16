@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-
+import {TranslateService} from "@ngx-translate/core";
 @Component({
   selector: 'app-welcome',
   templateUrl: './welcome.component.html',
@@ -8,7 +8,11 @@ import { Router } from '@angular/router';
 })
 export class WelcomeComponent implements OnInit {
 
-  constructor(private ruter: Router) { }
+  constructor(private ruter: Router, private translate: TranslateService) {
+    translate.setDefaultLang('en');
+    translate.use('en');
+    
+   }
 
   ngOnInit(): void {
    
@@ -29,6 +33,11 @@ export class WelcomeComponent implements OnInit {
       sessionStorage.setItem("language","Srpski");
       this.language = "Srpski";
     }
+  }
+
+  switchLanguage(a){
+    this.translate.use(a);
+    sessionStorage.setItem("language", a);
   }
 
   isEnglish(){

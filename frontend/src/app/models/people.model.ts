@@ -36,6 +36,9 @@ export class PeopleTree{
         this.lines = [];
         this.partner = [];
         this.children = [];
+        this.mother = null;
+        this.father = null;
+        this.picture = null;
     }
     getId(){
       return this.id;
@@ -54,13 +57,18 @@ export class PeopleTree{
       tmp.x = newX;
       tmp.y = newY;
       if(PeopleTree.broj==null) PeopleTree.broj = 0;
-      this.id = PeopleTree.broj+1;
+      tmp.id = PeopleTree.broj+1;
       PeopleTree.broj=PeopleTree.broj + 1;
       return tmp;
     }
 
     draw() {
-        //console.log("Crtam se");
+      //iscrtaj sve linije
+
+      for(let l of this.lines){
+
+        l.draw();
+      }
       this.ctx.beginPath();
       this.ctx.arc(this.x,this.y,this.r,0,2*Math.PI);
       if(this.gender.toLowerCase() == "male")
@@ -87,22 +95,14 @@ export class PeopleTree{
         str = this.date_of_death.getDate() + "."+(this.date_of_death.getMonth()+1)+"."+this.date_of_death.getFullYear()+"✞";
         this.ctx.fillText(str, this.x+10, this.y+20);
       }
-      if(this.picture!=null){
-        let temp = new Image();
-        temp.src = this.picture;
-        this.ctx.drawImage(temp,this.x-35,this.y-80,75,75)
-      }
-      else{
-        //stavi podrazumevanu sliku neku zavisno od pola
-      }
-
-      //iscrtaj sve linije
-      for(let l of this.lines){
-        if(l.kind=="father"){
-          //console.log(this.name);
-        }
-        l.draw();
-      }
+     
+      let temp = new Image();
+      temp.src = this.picture;
+      this.ctx.drawImage(temp,this.x-35,this.y-80,75,75)
+      
+    
+      
+      
 
 
     }
@@ -152,211 +152,138 @@ export class PeopleTree{
     }
 
     //parametar 'ovaj' sam dodao da bi moglo dodavanje mame preko brace/sestara pravilno
-    addMother(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj){
+    addMother(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj, translate){
       let koji = this;
       
-     
       if(ovaj.id != this.id){
         koji = ovaj;
       }
-     
       let novoX = newX;
       let novoY = newY;
-       /*
-      if(novoX-100<0){
-       
-        this.pomeriSve(300,0);
-        this.ctx.canvas.width = this.ctx.canvas.width+300;
-        novoX = this.x-300;
-      }
-      if(novoY-100<0){ 
-        //this.ctx.arc(100,100,this.r,0,2*Math.PI);
-        //this.ctx.fill();
-        //this.ctx.stroke();
-        this.pomeriSve(0,300);
-        this.ctx.canvas.height = this.ctx.canvas.height+300;
-        novoY = this.y-300;
-      }
-      */
-      //add line to mother
-      //let nova = new Line(this.ctx, this.x - 70, this.y - 70, novoX + 70, novoY+70,false );
+
       let t = koji.izracunaj(koji.x, koji.y, novoX, novoY);
       let tt = koji.izracunaj( novoX, novoY, koji.x, koji.y);
-      let language = sessionStorage.getItem("language");
-      let nova = null;
-      if(language=="English")
-        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,'mother' );
-      else if(language=="Srpski")
-        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,'мајка' );
-
-      koji.lines.push(nova);
+      
 
       let tmp = koji.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
       koji.mother = tmp.id;  
       tmp.children.push(koji);
 
+      let nova = null;
+
+      nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false, translate.instant('relatives.mother'), tmp);
+
+      //add line to current node
+      koji.lines.push(nova);
+
       //ako vec postoji tata, onda da ih spojim u vezu
       if(koji.father!=null){
-        GenerateNewComponent.getAllNodes().get(koji.father).partner.push(tmp);
-        tmp.partner.push(koji.father);
+        let otac =  this.getNodeWithId(koji.father);
+
+        tmp.partner.push(otac);
+        otac.partner.push(tmp);
         
-        let t = this.izracunaj(koji.mother.x, koji.mother.y, koji.father.x, koji.father.y);
-        let tt = this.izracunaj( koji.father.x, koji.father.y, koji.mother.x, koji.mother.y);
-        //let nova = new Line(this.ctx, t[0] , t[1], novoX , novoY,true,'partner' );
-        let language = sessionStorage.getItem("language");
+        let t = this.izracunaj(tmp.x, tmp.y, otac.x, otac.y);
+        let tt = this.izracunaj( otac.x, otac.y, tmp.x, tmp.y);
+       
+        
         let nova = null;
-        if(language=="English")
-          nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],true,'partner' );
-        else if(language=="Srpski")
-          nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],true,'партнер' );
-        koji.mother.lines.push(nova);
-        
+
+        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],true,translate.instant('relatives.partner'), otac );
+
+        tmp.lines.push(nova);
       }
-      sessionStorage.setItem("language",language);
       return tmp;
-      
     }
-    addFather(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj){
-      
+    addFather(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj, translate){
       let koji = this;
+      
       if(ovaj.id != this.id){
         koji = ovaj;
       }
-
       let novoX = newX;
       let novoY = newY;
-       /*
-      if(novoX-100<0){
-       
-        this.pomeriSve(300,0);
-        this.ctx.canvas.width = this.ctx.canvas.width+300;
-        novoX = this.x-300;
-      }
-      if(novoY-100<0){ 
-        //this.ctx.arc(100,100,this.r,0,2*Math.PI);
-        //this.ctx.fill();
-        //this.ctx.stroke();
-        this.pomeriSve(0,300);
-        this.ctx.canvas.height = this.ctx.canvas.height+300;
-        novoY = this.y-300;
-      }
-      */
-      //add line to mother
-      //let nova = new Line(this.ctx, this.x - 70, this.y - 70, novoX + 70, novoY+70,false );
+
+     
       let t = koji.izracunaj(koji.x, koji.y, novoX, novoY);
       let tt = koji.izracunaj( novoX, novoY, koji.x, koji.y);
-      let language = sessionStorage.getItem("language");
+     
+      let tmp = koji.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
+      koji.father = tmp.id;  
+      tmp.children.push(koji);
+
       let nova = null;
-      if(language=="English")
-        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,'father' );
-      else if(language=="Srpski")
-        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,'отац' );
-      
 
+      nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false, translate.instant('relatives.father'), tmp );
 
+      //add line to current node
       koji.lines.push(nova);
 
-      let tmp = koji.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
-      koji.father = tmp;
-      tmp.children.push(koji);
-  
-   
+
+      //ako vec postoji mama, onda da ih spojim u vezu
       if(koji.mother!=null){
-       
-        koji.mother.partner.push(tmp);
-        tmp.partner.push(koji.mother);
+        let majka =  this.getNodeWithId(koji.mother);
+
+        tmp.partner.push(majka);
+        majka.partner.push(tmp);
         
-        let t = this.izracunaj(koji.mother.x, koji.mother.y, koji.father.x, koji.father.y);
-        let tt = this.izracunaj( koji.father.x, koji.father.y, koji.mother.x, koji.mother.y);
-        //let nova = new Line(this.ctx, t[0] , t[1], novoX , novoY,true,'partner' );
-        let language = sessionStorage.getItem("language");
+        let t = this.izracunaj(tmp.x, tmp.y, majka.x, majka.y);
+        let tt = this.izracunaj( majka.x, majka.y, tmp.x, tmp.y);
+       
         let nova = null;
-        if(language=="English")
-          nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],true,'partner' );
-        else if(language=="Srpski")
-          nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],true,'партнер' );
-        koji.father.lines.push(nova);
+
+        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],true, translate.instant('relatives.partner'), majka );
+
+        tmp.lines.push(nova);
       }
-      sessionStorage.setItem("language",language);
+
       return tmp;
     }
-    addPartner(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY){
-      /*
-      let novoX =null;
-      if(newGender == 'male')
-        novoX = this.x+900;
-      else 
-        novoX = this.x-900;
-      let novoY = this.y;
-       
-      if(novoX-100<0){
-       
-        this.pomeriSve(700,0);
-        this.ctx.canvas.width = this.ctx.canvas.width+700;
-        if(newGender == 'male')
-          novoX = this.x+900;
-        else 
-          novoX = this.x-900;
-      }
-      */
-     let novoX = newX;
-     let novoY = newY;
+    addPartner(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, translate){
+     
+      let novoX = newX;
+      let novoY = newY;
       //add line to partner
 
       let t = this.izracunaj(this.x, this.y, novoX, novoY);
       let tt = this.izracunaj( novoX, novoY, this.x, this.y);
-      //let nova = new Line(this.ctx, t[0] , t[1], novoX , novoY,true,'partner' );
-       let language = sessionStorage.getItem("language");
-      let nova = null;
-      if(language=="English")
-        nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],true,'partner' );
-      else if(language=="Srpski")
-        nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],true,'партнер' );
-      /*
-      let nova = null;
-      if(newGender=='male')
-        nova = new Line(this.ctx, this.x +100, this.y , novoX -100, novoY,true, 'partner' );
-      else 
-        nova = new Line(this.ctx, novoX+100, novoY , this.x-100, this.y,true, 'partner' );
-      */
-      this.lines.push(nova);
 
       let tmp = this.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
       this.partner.push(tmp);
-      tmp.partner .push(this);
+      tmp.partner.push(this);
 
+      let nova = null;
+
+      nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],true,translate.instant('relatives.partner'), tmp );
+
+      this.lines.push(nova);
+      //console.log("added lines with heart");
       if(this.children.length == this.partner.length ){
+
         let dete = this.children[this.children.length-1];
         
         let t1 = this.izracunaj( dete.x, dete.y,  tmp.x, tmp.y);
         let tt1 = this.izracunaj(  tmp.x, tmp.y,  dete.x, dete.y);
         let nova1 = null;
         if(tmp.gender.toLowerCase()=='male'){
-          if(language=="English")
-            nova1 = new Line(this.ctx, t1[0] , t1[1], tt1[0], tt1[1], false,'father' );
-          else if (language=="Srpski")
-            nova1 = new Line(this.ctx, t1[0] , t1[1], tt1[0], tt1[1], false,'отац' );
-          this.children[this.children.length-1].father = tmp;
+
+            nova1 = new Line(this.ctx, t1[0] , t1[1], tt1[0], tt1[1], false,translate.instant('relatives.father'), tmp );
+
         }
-         
+          
         else{
-          if(language=="English")
-            nova1 = new Line(this.ctx, t1[0] , t1[1], tt1[0] , tt1[1], false,'mother' );
-          else if (language=="Srpski")
-            nova1 = new Line(this.ctx, t1[0] , t1[1], tt1[0], tt1[1], false,'мајка' );
-          
-          this.children[this.children.length-1].mother = tmp;
+
+            nova1 = new Line(this.ctx, t1[0] , t1[1], tt1[0] , tt1[1], false,translate.instant('relatives.mother'), tmp );
+
         }
-          
-        
-        this.children[this.children.length-1].lines.push(nova1);
+        dete.lines.push(nova1);
         tmp.children.push(dete);
       }
-      sessionStorage.setItem("language",language);
+
       return tmp;
     
     }
-    addSibling(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj){
+    addSibling(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, ovaj, translate){
       let koji = this;
       if(ovaj.id != this.id){
         koji = ovaj;
@@ -383,62 +310,41 @@ export class PeopleTree{
       //let nova = new Line(this.ctx, this.x - 70, this.y - 70, novoX + 70, novoY+70,false );
       let t = koji.izracunaj(koji.x, koji.y, novoX, novoY);
       let tt = koji.izracunaj( novoX, novoY, koji.x, koji.y);
-      let nova = null;
-      let language = sessionStorage.getItem("language");
-      if(language=="English")
-        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,'sibling' );
-      else if(language=="Srpski")
-        nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,'brat/sestra' );
-
-      koji.lines.push(nova);
+    
 
       let tmp = koji.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
       koji.nextSibling = tmp;
       tmp.prevSibling = koji;
-      sessionStorage.setItem("language",language);
+
+      let nova = null;
+
+      nova = new Line(koji.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.sibling'), tmp );
+
+      koji.lines.push(nova);
+
       return tmp;
     
     }
 
-    addChild(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY){
+    addChild(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, newX, newY, translate){
       
       let novoX = newX;
       let novoY = newY;
-       /*
-      if(novoX-100<0){
-       
-        this.pomeriSve(300,0);
-        this.ctx.canvas.width = this.ctx.canvas.width+300;
-        novoX = this.x-300;
-      }
-      if(novoY-100<0){ 
-        //this.ctx.arc(100,100,this.r,0,2*Math.PI);
-        //this.ctx.fill();
-        //this.ctx.stroke();
-        this.pomeriSve(0,300);
-        this.ctx.canvas.height = this.ctx.canvas.height+300;
-        novoY = this.y-300;
-      }
-      */
-      //add line to mother
-      //let nova = new Line(this.ctx, this.x - 70, this.y - 70, novoX + 70, novoY+70,false );
-     
 
       let tmp = this.createPerson(newName, newSurname, newDateOfBirth, newDateOfDeath, newGender, newPlaceOfBirth, newPicture, newProfession, novoX, novoY);
-      let language = sessionStorage.getItem("language");
-      
+
 
       if(this.children.length<this.partner.length){
         
         if(this.gender == 'male'){
-          tmp.father = this;
-          tmp.mother = this.partner[this.children.length];
+         // tmp.father = this;
+         // tmp.mother = this.partner[this.children.length];
         }
         else{
-          tmp.mother = this;
-          tmp.father = this.partner[this.children.length];
-          console.log(tmp.father.name);
-          console.log(language);
+         // tmp.mother = this;
+         // tmp.father = this.partner[this.children.length];
+         // console.log(tmp.father.name);
+         
         }
 
        
@@ -448,36 +354,17 @@ export class PeopleTree{
         let nova2 = null;
         if(this.gender == 'male')
         {
-          if(language=="English"){
-            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'father' );
+            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.father'), tmp );
             t = this.izracunaj(novoX, novoY, this.partner[this.children.length].x,this.partner[this.children.length].y);
             tt = this.izracunaj(this.partner[this.children.length].x,this.partner[this.children.length].y,novoX, novoY);
-            nova2 = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'mother' );
-          }
-            
-          else if(language=="Srpski"){
-            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'отац' );
-            t = this.izracunaj(novoX, novoY, this.partner[this.children.length].x,this.partner[this.children.length].y);
-            tt = this.izracunaj(this.partner[this.children.length].x,this.partner[this.children.length].y,novoX, novoY);
-            nova2 = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'мајка' );
-          }
-            
+            nova2 = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.mother'), tmp );
         }
            
         else{
-          if(language=="English"){
-            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'mother' );
+            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.mother'), tmp );
             t = this.izracunaj(novoX, novoY, this.partner[this.children.length].x,this.partner[this.children.length].y);
             tt = this.izracunaj(this.partner[this.children.length].x,this.partner[this.children.length].y,novoX, novoY);
-            nova2 = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'father' );
-          }
-            
-          else if(language=="Srpski"){
-            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'мајка' );
-            t = this.izracunaj(novoX, novoY, this.partner[this.children.length].x,this.partner[this.children.length].y);
-            tt = this.izracunaj(this.partner[this.children.length].x,this.partner[this.children.length].y,novoX, novoY);
-            nova2 = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'отац' );
-          }
+            nova2 = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.father'), tmp );
         }
          //console.log("Etna "+nova.kind);
          this.partner[this.children.length].children.push(tmp);
@@ -501,39 +388,34 @@ export class PeopleTree{
           let t = this.izracunaj(q.x, q.y, novoX, novoY);
           let tt = this.izracunaj( novoX, novoY, q.x, q.y);
           let nova = null;
-          if(language=="English")
-            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'sibling' );
-          else if(language=="Srpski")
-            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'брат/сестра' );
+
+          nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.sibling'), tmp );
+
           q.lines.push(nova);
         }
         else{
-          console.log("Etna");
+          
           if(this.gender == 'male'){
-            tmp.father = this;
+            tmp.father = this.id;
           }
           else{
-            tmp.mother = this;
+            tmp.mother = this.id;
           }
           this.children.push(tmp);
           let t = this.izracunaj(this.x, this.y, novoX, novoY);
           let tt = this.izracunaj( novoX, novoY, this.x, this.y);
           let nova = null;
           if(this.gender.toLocaleLowerCase()=='male') 
-            {
-              if(language=="English")
-                nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'father' );
-              else if(language=="Srpski")
-                nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'отац' );
-            }
+          {
+              nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.father'), this );
+          }
           else {
-            if(language=="English")
-              nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'mother' );
-            else if(language=="Srpski")
-              nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'мајка' );
+
+            nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.mother'), this );
+
           }
           
-          this.lines.push(nova);
+          tmp.lines.push(nova);
           
         }
         
@@ -552,27 +434,24 @@ export class PeopleTree{
         let t = this.izracunaj(q.x, q.y, novoX, novoY);
         let tt = this.izracunaj( novoX, novoY, q.x, q.y);
         let nova = null;
-        
-        if(language=="English")
-          nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'sibling' );
-        else if(language=="Srpski")
-          nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,'брат/сестра' );
-        
-        
+
+        nova = new Line(this.ctx, t[0] , t[1], tt[0] , tt[1],false,translate.instant('relatives.sibling'), tmp );
+
         q.lines.push(nova);
       }
-      
-      sessionStorage.setItem("language",language);
 
       return tmp;
       
       
     
     }
+    
 
     rastojanje (X1,Y1, X2,Y2){
       return Math.sqrt((X2-X1)*(X2-X1)+(Y2-Y1)*(Y2-Y1));
     }
+    //dva kruga, koordinate (A,B) i (C,D)
+    //vraca (x,y) koordinate tacke na obimu PRVOG kruga, najblize drugom krugu
     izracunaj(A,B,C,D){
       let R = (D-B)/(C-A);
       let T = (B*C - A*D) / (C-A);
@@ -600,7 +479,9 @@ export class PeopleTree{
           return tmp;
       }
     }
-    
+    checkIfNodeWithIdExists(id){
+      return GenerateNewComponent.getAllNodes().has(id);
+    }
     pomeriSve(x, y){
       const visited = new Set();
 
@@ -609,52 +490,79 @@ export class PeopleTree{
 
       while (queue.length > 0) {
 
-          const node = queue.shift(); // mutates the queue
+        const node = queue.shift(); // mutates the queue
+        if(node==undefined) break;
+
+        node.x = node.x + x;
+        node.y = node.y + y;
+        for(let l of node.lines){
+          l.x0 = l.x0 + x;
+          l.x1 = l.x1 + x;
+          l.y0 = l.y0 + y;
+          l.y1 = l.y1 + y;
+        }
+        
+        const destinations = [];
+
+        if(this.checkIfNodeWithIdExists(node.mother)) {
+          //console.log("mother exists");
+          destinations.push(this.getNodeWithId(node.mother));
+        }
+        if(this.checkIfNodeWithIdExists(node.father)) {
+          //console.log("father exists");
+          destinations.push(this.getNodeWithId(node.father));
+        }
+        if(node.children.length!=0 ) {
+          node.children.forEach(element => {
+            destinations.push(element);
+          });
+        }
+        if(node.nextSibling!=null) {
+          destinations.push(node.nextSibling);
+        }
+        if(node.partner.length!=0 ) {
+          node.partner.forEach(element => {
+            destinations.push(element);
+          });
+        }
+        for (const destination of destinations) {
+            if (!visited.has(destination)) {
+                visited.add(destination);
+                queue.push(destination);
+            }
           
-          node.x = node.x + x;
-          node.y = node.y + y;
-          for(let l of node.lines){
-            l.x0 = l.x0 + x;
-            l.x1 = l.x1 + x;
-            l.y0 = l.y0 + y;
-            l.y1 = l.y1 + y;
-          }
+        }
 
-          const destinations = [];
-          if(node.mother != null) destinations.push(node.mother);
-          if(node.father != null) destinations.push(node.father);
-          if(node.children.length!=0 ) {
-            node.children.forEach(element => {
-              destinations.push(element);
-            });
-          }
-          if(node.nextSibling != null) destinations.push(node.nextSibling);
-          if(node.partner != null) {
-            node.partner.forEach(element => {
-              destinations.push(element);
-            });
-          }
-          
-
-          for (const destination of destinations) {
-
-            
-              
-              if (!visited.has(destination)) {
-                  visited.add(destination);
-                  queue.push(destination);
-              }
-            
-          }
-
-          
-      }
+        
+    }
       return null;
     }
     isInside(x0,y0){
        return Math.sqrt( Math.pow(x0-this.x,2)+Math.pow(y0-this.y,2)) <= this.r;
     }
 
+    moveNode(x,y){
+      //move the node itself
+      this.x = x;
+      this.y = y;
+      for(let l of this.lines){
+        l.x0 = l.x0 + x;
+        l.x1 = l.x1 + x;
+        l.y0 = l.y0 + y;
+        l.y1 = l.y1 + y;
+      }
+
+      if(this.mother!=null){
+        
+      }
+      if(this.father!=null){
+
+      }
+      //move all lines that are connected to that node
+    }
+    getNodeWithId(id){
+      return(GenerateNewComponent.getAllNodes().get(id));
+    }
 
     removeNode() {
       if(this.children.length!=0){
@@ -726,29 +634,29 @@ export class PeopleTree{
         
         let index = 0;
         let i = 0;
-        this.mother.lines.forEach(line => {
+       /* this.mother.lines.forEach(line => {
           if(line.kind=='mother'|| line.kind == "мајка"){
             index = i;
           }
           i = i + 1;
         });
         this.mother.lines.splice(index,1);
-        this.mother.children.pop();
+        this.mother.children.pop();*/
       }
         
       if(this.father!=null){
        
         let index = 0;
         let i = 0;
-        this.father.lines.forEach(line => {
+       /* this.father.lines.forEach(line => {
           
           if(line.kind=='father' || line.kind == "отац"){
             index = i;
           }
           i = i + 1;
-        });
-        this.father.lines.splice(index,1);
-        this.father.children.pop();
+        });*/
+        //this.father.lines.splice(index,1);
+        //this.father.children.pop();
         //this.father.children=null;
       }
         

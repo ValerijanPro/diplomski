@@ -8,7 +8,7 @@
             <path fill-rule="evenodd" d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2z"/>
             <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V10.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708l3-3z"/>
           </svg>
-          <h3 class="pt-1">Export</h3>
+          <h3 class="pt-1">{{ 'menu.export' | translate }}</h3>
         </button>
       </div>
       <div class="col-2">
@@ -16,7 +16,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-graph-up-arrow" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
           </svg>
-          <h3 class="pt-1">Statistics</h3>
+          <h3 class="pt-1">{{ 'menu.statistics' | translate }}</h3>
         </button>
       </div>
 
@@ -25,97 +25,79 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-graph-up-arrow" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5Z"/>
           </svg>
-          <h3 class="pt-1">Save tree</h3>
+          <h3 class="pt-1">{{ 'menu.saveTree' | translate }}</h3>
         </button>
       </div>
     </div>
-   
-    <section *ngIf="showStatistics" id="success1">
 
-      <div class="icon">
-        
-        <div (click)="closeAlert1()" style="cursor: pointer;" class="text-end">X</div>
-        <div class="row text-center" style="border: solid 1px;">
-          <h1>Average No. of children: {{ averageNumberOfChildren.toFixed(0) }}</h1>
+    <div *ngIf="showStatistics" class="container mt-3">
+      <div class="row">
+        <div class="alert-custom2 alert-custom-warning2">
+          <span (click)="closeAlert1()" class="alert-custom2-close">&times;</span>
+          {{ 'statistics.lifespan' | translate }} {{ averageLifespan.toFixed(0) }} years
+          <br/>
+          {{ 'statistics.numberOfChildren' | translate }} {{ averageNumberOfChildren.toFixed(0) }}
         </div>
-        <div class="row text-center" style="border: solid 1px;">
-          <h1>Average lifespan: {{ averageLifespan.toFixed(0) }} years</h1>
-        </div>
-       
-        
-        
       </div>
-      
-    </section>
+    </div>
 
-    
-
-    <section *ngIf="successfulExport" id="success">
-      <div class="icon">
-        
-        <div (click)="closeAlert()" style="cursor: pointer;" class="text-end">X</div>
-        <div class="row text-center">
-          <h1>Successfully exported!<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-emoji-smile" viewBox="0 0 16 16">
-            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-            <path d="M4.285 9.567a.5.5 0 0 1 .683.183A3.498 3.498 0 0 0 8 11.5a3.498 3.498 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.498 4.498 0 0 1 8 12.5a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683zM7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5zm4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5z"/>
-          </svg></h1>
-          
-        </div>
-        
-         
-        
-        
+    <div *ngIf="successfulExport" class="container mt-3">
+      <div class="alert-custom1 alert-custom-warning1">
+        <span (click)="closeAlert3()" class="alert-custom1-close">&times;</span>
+        {{ 'message.successfulExport' | translate }}
       </div>
-     
-      
-      <i class="fa fa-times succ" aria-hidden="true"></i>
-    </section>
+    </div>
+
+    <div *ngIf="successfulSave" class="container mt-3">
+      <div class="alert-custom1 alert-custom-warning1">
+        <span (click)="closeAlert4()" class="alert-custom1-close">&times;</span>
+        {{ 'message.successfulSave' | translate }}
+      </div>
+    </div>
+
+    <div *ngIf="showErrorAlert" class="container mt-3">
+      <div class="alert-custom alert-custom-warning">
+        <span (click)="closeAlert2()" class="alert-custom-close">&times;</span>
+        {{ errorAlertMessage }}
+      </div>
+    </div>
 
     <div class="container" *ngIf="showAddForm || !enteredMyself" style="width: 50vh;">
-      <h1 *ngIf="!enteredMyself && isEnglish()">Lets's start with your information</h1>
-      <h1 *ngIf="!enteredMyself && isSerbian()">Почнимо од твојих података</h1>
+      <h1 *ngIf="!enteredMyself">{{ 'addform.letsStart' | translate }}</h1>
 
-      <h1  *ngIf="showAddForm && isEnglish()">Enter information about {{ newPersonKind }} </h1>
-      <h1  *ngIf="showAddForm && isSerbian()">Унеси информације о  {{ newPersonKind }} </h1>
+      <h1  *ngIf="showAddForm">{{ 'addform.enterInformationAbout' | translate }}{{ newPersonKind }} </h1>
 
       <h2 *ngIf="errorMissingInformation!=null" class="text_shadows1">{{ errorMissingInformation }}</h2>
       
             <div class="form-outline">
-                  <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">First name</label>
-                  <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Име</label>
-
+                  <label class="form-label" for="form3Example1m">{{ 'addform.firstName' | translate }}</label>
+                  
                   <input name="v10" [(ngModel)]="newPersonName" type="text" id="form3Example1m" class="form-control form-control-lg" />
                  </div>
 
                 <div class="form-outline">
-                  <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Last name</label>
-                  <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Презиме</label>
+                  <label class="form-label" for="form3Example1m">{{ 'addform.lastName' | translate }}</label>
 
                   <input name="v9" [(ngModel)]="newPersonSurname" type="text" id="form3Example1n" class="form-control form-control-lg" />
             </div>
   
             <div class="form-outline mb-4">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example8">Date of birth</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Датум рођења</label>
+                <label class="form-label" for="form3Example8">{{ 'addform.dateOfBirth' | translate }}</label>
 
                 <input name="v8" [(ngModel)]="newPersonDateOfBirth" type="date" id="form3Example8" class="form-control form-control-lg" />
             </div>
              
             <div class="form-outline mb-4">
-              <label *ngIf="isEnglish()" class="form-label" for="form3Example8">Date of death (optional)</label>
-              <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Датум смрти (опционо)</label>
-
+              <label class="form-label" for="form3Example8">{{ 'addform.dateOfDeath' | translate }}</label>
+ 
               <input name="v7" [(ngModel)]="newPersonDateOfDeath" type="date" id="form3Example8" class="form-control form-control-lg" />
             </div>
             <div class="form-outline mb-4">
-              <label *ngIf="isEnglish()" class="form-label" for="form3Example8">Place of birth</label> <br/>
-              <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Место рођења</label>
+              <label class="form-label" for="form3Example8">{{ 'addform.placeOfBirth' | translate }}</label> <br/>
 
             <select name="asd" [(ngModel)]="newPersonPlaceOfBirth"  class="form-select"  aria-label="Default select example">
-              <option *ngIf="isEnglish()" selected>Find your country</option>
-              <option *ngIf="isSerbian()" selected>Пронађи земљу</option>
+              <option  selected>{{ 'addform.findYourCountry' | translate }}</option>
               <option  *ngFor="let c of countriesFiltered" >{{ c["name"] }}</option>
-              
             </select>
   
              
@@ -124,8 +106,7 @@
             <div class=" justify-content-start align-items-center mb-4 py-2">
                   <div class="row">
                       <div class="col">
-                          <h6 *ngIf="isEnglish()" class="mb-0 me-4">Gender: </h6>
-                          <h6 *ngIf="isSerbian()" class="mb-0 me-4">Пол: </h6>
+                          <h6 class="mb-0 me-4">{{ 'addform.gender' | translate }} </h6>
                       </div>
                   </div>
                   <div class="row">
@@ -133,43 +114,33 @@
                           <div class="form-check form-check-inline mb-0 me-4">
                               <input name="v5" class="form-check-input" type="radio" [(ngModel)]="newPersonGender" name="inlineRadioOptions" id="femaleGender"
                                 value="female" />
-                              <label *ngIf="isEnglish()" class="form-check-label" for="femaleGender">Female</label>
-                              <label *ngIf="isSerbian()" class="form-check-label" for="femaleGender">Женски</label>
-                            
+                              <label class="form-check-label" for="femaleGender">{{ 'addform.female' | translate }}</label>
                             </div>
                 
                             <div class="form-check form-check-inline mb-0 me-4">
                               <input name="v4" class="form-check-input" type="radio" [(ngModel)]="newPersonGender" name="inlineRadioOptions" id="maleGender"
                               value="male" />
-                              <label *ngIf="isEnglish()" class="form-check-label" for="maleGender">Male</label>
-                              <label *ngIf="isSerbian()" class="form-check-label" for="maleGender">Мушки</label>
-                            
+                              <label class="form-check-label" for="maleGender">{{ 'addform.male' | translate }}</label>
                             </div>
-                
-                            
                       </div>
                   </div>
             </div>
   
             <div class="form-outline mb-4">
-              <label *ngIf="isEnglish()" class="form-label" for="form3Example1c">Picture</label>
-              <label *ngIf="isSerbian()" class="form-label" for="form3Example1c">Слика</label>
-              
-              <input name="v2" [(ngModel)]="newPersonPicture" type="file" > 
-           </div>
+              <label class="form-label" for="form3Example1c">{{ 'addform.picture' | translate }}</label>
+              <input name="v15"  (change)="onFileSelected($event)" accept="image/*" type="file" id="form3Example1m" class="form-control form-control-lg" />
+          
+            </div>
            <div class="form-outline">
-              <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Profession</label>
-              <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Занимање</label>
-         
+              <label class="form-label" for="form3Example1m">{{ 'addform.profession' | translate }}</label>
               <input name="v1" [(ngModel)]="newPersonProfession" type="text" id="form3Example1m" class="form-control form-control-lg" />
           </div>
   
        
   
             <div class="d-flex justify-content-center pt-3 pb-3">
-              <button *ngIf="isEnglish()" type="button" class="btn btn-warning btn-lg ms-2" (click)="addNewPerson()">Create me!</button>
-              <button *ngIf="isSerbian()" type="button" class="btn btn-warning btn-lg ms-2" (click)="addNewPerson()">Креирај ме!</button>
-            
+              <button type="button" class="btn btn-warning btn-lg ms-2" (click)="addNewPerson()">{{ 'addform.createMe' | translate }}</button>
+     
             </div>
     
         
@@ -197,74 +168,60 @@
 
         <div class="choice" *ngIf="addNew==true">
           <div class="box1" (click)="choosePersonKind(1)" >
-            <div *ngIf="isEnglish()">
-              Add mother
-            </div>
-            <div *ngIf="isSerbian()">
-              Додај мајку
+            <div>
+              {{ 'modal.addMother' | translate }}
             </div>
             <img src="assets/images/mother.png" width="50" height="50" alt="">
           </div>
           <div class="box2" (click)="choosePersonKind(2)">
-            <div *ngIf="isEnglish()">
-              Add father
-            </div>
-            <div *ngIf="isSerbian()">
-              Додај оца
+            <div>
+              {{ 'modal.addFather' | translate }}
             </div>
             <img src="assets/images/dad.png" width="50" height="50" alt="">
           </div>
           <div class="box5" (click)="choosePersonKind(5)">
-            <div *ngIf="isEnglish()">
-              Add partner
-            </div>
-            <div *ngIf="isSerbian()">
-              Додај партнера
+            <div>
+              {{ 'modal.addPartner' | translate }}
             </div>
             <img src="assets/images/relationship.png" width="50" height="50" alt="">
           </div>
           <div class="box3" (click)="choosePersonKind(3)">
-            <div *ngIf="isEnglish()">
-              Add sibling
-            </div>
-            <div *ngIf="isSerbian()">
-              Додај брата/сестру
+            <div>
+              {{ 'modal.addSibling' | translate }}
             </div>
             <img src="assets/images/sibling.png" width="50" height="50" alt="">
           </div>
           <div class="box4" (click)="choosePersonKind(4)">
-            <div *ngIf="isEnglish()">
-              Add child
-            </div>
-            <div *ngIf="isSerbian()">
-              Додај дете
+            <div>
+              {{ 'modal.addChild' | translate }}
             </div>
             <img src="assets/images/child.png" width="50" height="50" alt="">
           </div>
-          <div class="box6" (click)="choosePersonKind(6)">
-            <div *ngIf="isEnglish()">
-              Not now
+          <div class="box8" (click)="choosePersonKind(8)">
+            <div>
+              {{ 'modal.moveNode' | translate }}
             </div>
-            <div *ngIf="isSerbian()">
-              Не сада
+            <img src="assets/images/4arrows.png" width="50" height="50" alt="">
+          </div>
+          <div class="box9" (click)="searchTree()">
+            <div>
+              {{ 'modal.searchRelative' | translate }}
+            </div>
+            <img src="assets/images/search.png" width="50" height="50" alt="">
+          </div>
+
+          <div class="box6" (click)="choosePersonKind(6)">
+            <div>
+              {{ 'modal.notNow' | translate }}
             </div>
             <button type="button"  class="btn-close">
               <span class="icon-cross">X</span>
-              <span class="visually-hidden">Close</span>
+              <span class="visually-hidden">{{ 'modal.close' | translate }}</span>
             </button>
           </div>
         </div> 
 
-        <div *ngIf="enteredMyself" class="row justify-content-center text-center">
-          <div class="col-2">
-            <button  class="btnn fourth" style="cursor: pointer;" (click)="searchTree()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-              </svg>
-              <h3 >Search relative</h3>
-            </button>
-          </div>
-        </div>
+        
        
       </div>
       
@@ -276,11 +233,8 @@
       <div class="row" >
         <div class="box7">
           <h2 class="text_shadows">
-            <div *ngIf="isEnglish()">
-              Click where you want to place new node
-            </div>
-            <div *ngIf="isSerbian()">
-              Кликни где би желео да поставиш нови чвор
+            <div>
+              {{ 'message.clickWhereToPlace' | translate }}
             </div>
             </h2>
         </div>
@@ -288,23 +242,23 @@
     </div>
 
     <div *ngIf="enteredMyself" class="bot">
-      <div class="row justify-content-center align-items-center text-center">
-        <div class="col-2 kocke">
+      <div class="row justify-content-center align-items-center text-center" style="width: 70%;">
+        <div class="col-1 kocke">
           <svg (click)="pomeri(1)" xmlns="http://www.w3.org/2000/svg" width="75" height="75" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
           </svg>
         </div>
-        <div class="col-2 kocke">
+        <div class="col-1 kocke">
           <svg (click)="pomeri(2)" xmlns="http://www.w3.org/2000/svg" width="75" height="75" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
           </svg>
         </div>
-        <div class="col-2 kocke">
+        <div class="col-1 kocke">
           <svg (click)="pomeri(3)" xmlns="http://www.w3.org/2000/svg" width="75" height="75" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
           </svg>
         </div>
-        <div class="col-2 kocke">
+        <div class="col-1 kocke">
           <svg (click)="pomeri(4)" xmlns="http://www.w3.org/2000/svg" width="75" height="75" fill="currentColor" class="bi bi-arrow-down" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
           </svg>
@@ -316,8 +270,8 @@
             <span></span>
             <span></span>
             
+            <div>{{ 'menu.edit' | translate }}</div>
             
-              Edit
             
           </div>
           
@@ -329,8 +283,9 @@
             <span></span>
             <span></span>
             <span></span>
+
+            <div>{{ 'menu.edit' | translate }}</div>
             
-              Edit
             
           </div>
         </div>
@@ -342,33 +297,33 @@
             <span></span>
             <span></span>
             
-              Finish
+            <div>{{ 'menu.finish' | translate }}</div>
             
             
           </div>
         </div>
 
-        <div *ngIf="canUndo" class="col-2 pt-2">
+        <div *ngIf="undoNode!=null" class="col-2 pt-2">
           <div class="animated-button1" (click)=" undoPerson()">
             <span></span>
             <span></span>
             <span></span>
             <span></span>
             
-              Undo
+            <div>{{ 'menu.undo' | translate }}</div>
            
             
           </div>
         </div>
        
-        <div *ngIf="!canUndo" class="col-2 pt-2">
+        <div *ngIf="undoNode==null" class="col-2 pt-2">
           <div class="animated-button2">
             <span></span>
             <span></span>
             <span></span>
             <span></span>
             
-              Undo
+            <div>{{ 'menu.undo' | translate }}</div>
             
           </div>
         </div>
@@ -388,32 +343,28 @@
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(1)"><span>
-              <div *ngIf="isEnglish()">Mother</div>
-              <div *ngIf="isSerbian()">Мајка</div>
+              <div> {{ 'relatives.mother' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(2)"><span>
-              <div *ngIf="isEnglish()">Father</div>
-              <div *ngIf="isSerbian()">Отац</div>
+              <div>{{ 'relatives.father' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(3)"><span>
-              <div *ngIf="isEnglish()">Brother</div>
-              <div *ngIf="isSerbian()">Брат</div>
+              <div>{{ 'relatives.brother' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(4)"><span>
-              <div *ngIf="isEnglish()">Sister</div>
-              <div *ngIf="isSerbian()">Сестра</div>
+              <div>{{ 'relatives.sister' | translate }}</div>
             </span></a>
           </div>
         </div>
@@ -424,32 +375,28 @@
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(5)"><span>
-              <div *ngIf="isEnglish()">Grandfather</div>
-              <div *ngIf="isSerbian()">Деда</div>
+              <div>{{ 'relatives.grandfather' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(6)"><span>
-              <div *ngIf="isEnglish()">Grandmother</div>
-              <div *ngIf="isSerbian()">Баба</div>
+              <div>{{ 'relatives.grandmother' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(7)"><span>
-              <div *ngIf="isEnglish()">Great-Grandfather</div>
-              <div *ngIf="isSerbian()">Прадеда</div>
+              <div>{{ 'relatives.greatgrandfather' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(8)"><span>
-              <div *ngIf="isEnglish()">Great-Grandmother</div>
-              <div *ngIf="isSerbian()">Прабаба</div>
+              <div>{{ 'relatives.greatgrandmother' | translate }}</div>
             </span></a>
           </div>
         </div>
@@ -458,42 +405,30 @@
       <div class="row">
         <div class="col-2"></div>
         <div class="col-2">
-          <div *ngIf="isEnglish()"class="wrapper" style="width:max-content">
+          <div class="wrapper" style="width:max-content">
             <a (click)="highlight(9)"><span>
-              Great-Great-Grandfather
-            </span></a>
-          </div>
-          <div *ngIf="isSerbian()" class="wrapper" >
-            <a (click)="highlight(9)"><span>
-              Чукундеда
+              {{ 'relatives.greatgreatgrandfather' | translate }}
             </span></a>
           </div>
         </div>
         <div class="col-2">
-          <div *ngIf="isEnglish()" class="wrapper" style="width:max-content">
+          <div  class="wrapper" style="width:max-content">
             <a (click)="highlight(10)"><span>
-             Great-Great-Grandmother
-            </span></a>
-          </div>
-          <div *ngIf="isSerbian()" class="wrapper">
-            <a (click)="highlight(10)"><span>
-             Чукунбаба
+              {{ 'relatives.greatgreatgrandmother' | translate }}
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(11)"><span>
-              <div *ngIf="isEnglish()">Son</div>
-              <div *ngIf="isSerbian()">Син</div>
+              <div>{{ 'relatives.son' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(12)"><span>
-              <div *ngIf="isEnglish()">Daughter</div>
-              <div *ngIf="isSerbian()">Ћерка</div>
+              <div>{{ 'relatives.daughter' | translate }}</div>
             </span></a>
           </div>
         </div>
@@ -504,32 +439,28 @@
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(13)"><span>
-              <div *ngIf="isEnglish()">Uncle</div>
-              <div *ngIf="isSerbian()">Ујак</div>
+              <div>{{ 'relatives.ujak' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(14)"><span>
-              <div *ngIf="isEnglish()">Aunt</div>
-              <div *ngIf="isSerbian()">Ујна</div>
+              <div>{{ 'relatives.ujna' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(15)"><span>
-              <div *ngIf="isEnglish()">...</div>
-              <div *ngIf="isSerbian()">Стриц</div>
+              <div>{{ 'relatives.stric' | translate }}</div>
             </span></a>
           </div>
         </div>
         <div class="col-2">
           <div class="wrapper">
             <a (click)="highlight(16)"><span>
-              <div *ngIf="isEnglish()">...</div>
-              <div *ngIf="isSerbian()">Стрина</div>
+              <div>{{ 'relatives.strina' | translate }}</div>
             </span></a>
           </div>
         </div>
@@ -544,9 +475,8 @@
           <div class="row">
             <div class="col-6">
               <div class="form-outline">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">First name</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Име</label>
-            
+                <label class="form-label" for="form3Example1m">{{ 'addform.firstName' | translate }}</label>
+
                 <input name="v10" placeholder="{{ editNode.name }}" [(ngModel)]="editNode.name" type="text" id="form3Example1m" class="form-control form-control-lg" />
                 </div>
 
@@ -554,9 +484,8 @@
             </div>
             <div class="col-6">
               <div class="form-outline">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Last name</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Презиме</label>
-            
+                <label class="form-label" for="form3Example1m">{{ 'addform.lastName' | translate }}</label>
+
                 <input name="v10" placeholder="{{ editNode.surname }}" [(ngModel)]="editNode.surname"type="text" id="form3Example1m" class="form-control form-control-lg" />
                 </div>
 
@@ -566,9 +495,8 @@
           <div class="row">
             <div class="col-6">
               <div class="form-outline">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Date of birth</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Датум рођења</label>
-            
+                <label class="form-label" for="form3Example1m">{{ 'addform.dateOfBirth' | translate }}</label>
+
                 <input name="v10" value="{{ editNode.date_of_birth }}" [(ngModel)]="editPersonDateOfBirth" type="date" id="form3Example1m" class="form-control form-control-lg" />
                 </div>
 
@@ -576,9 +504,8 @@
             </div>
             <div class="col-6">
               <div class="form-outline">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Date of death</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Датум смрти</label>
-            
+                <label class="form-label" for="form3Example1m">{{ 'addform.dateOfDeath' | translate }}</label>
+      
                 <input name="v10" value="{{ editNode.date_of_death }}"  [(ngModel)]="editPersonDateOfDeath" type="date" id="form3Example1m" class="form-control form-control-lg" />
                 
               </div>
@@ -589,9 +516,8 @@
           <div class="row">
             <div class="col-6">
               <div class="form-outline mb-4">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example8">Place of birth</label> <br/>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Место рођења</label>
-            
+                <label class="form-label" for="form3Example8">{{ 'addform.placeOfBirth' | translate }}</label> <br/>
+
               <select name="asd" [(ngModel)]="editNode.place_of_birth" class="form-select"  aria-label="Default select example">
                 
                 <option value="" disabled selected>{{ editNode.place_of_birth }}</option>
@@ -600,36 +526,36 @@
               </div>
             </div>
             <div class="col-6 pt-5">
-              <div class="form-check form-check-inline mb-0 me-4">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Gender</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Пол</label>
-            
-                <input name="v5"  class="form-check-input" type="radio" placeholder="{{ editNode.gender }}"  [(ngModel)]="editNode.gender" name="inlineRadioOptions" id="femaleGender"
-                  value="female" />
-                <label *ngIf="isEnglish()" class="form-check-label" for="femaleGender">Female</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Женски</label>
-            
-              </div>
-  
-              <div class="form-check form-check-inline mb-0 me-4">
-                <input name="v4" class="form-check-input pt-2" type="radio" placeholder="{{ editNode.gender }}"  [(ngModel)]="editNode.gender" name="inlineRadioOptions" id="maleGender"
-                value="male" />
-                <label *ngIf="isEnglish()" class="form-check-label" for="femaleGender">Male</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Мушки</label>
-            
-              </div>
-  
               
+  
+              <div class="row">
+                <div class="col">
+                    <h6 class="mb-0 me-4">{{ 'addform.gender' | translate }} </h6>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-check form-check-inline mb-0 me-4">
+                        <input name="v5" class="form-check-input" type="radio" [(ngModel)]="editNode.gender" name="inlineRadioOptions" id="femaleGender"
+                          value="female" />
+                        <label class="form-check-label" for="femaleGender">{{ 'addform.female' | translate }}</label>
+                      </div>
+          
+                      <div class="form-check form-check-inline mb-0 me-4">
+                        <input name="v4" class="form-check-input" type="radio" [(ngModel)]="editNode.gender" name="inlineRadioOptions" id="maleGender"
+                        value="male" />
+                        <label class="form-check-label" for="maleGender">{{ 'addform.male' | translate }}</label>
+                      </div>
+                </div>
+            </div>
 
-              
             </div>
           </div>
           <div class="row pb-3">
             <div class="col-6">
               <div class="form-outline">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Profession</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Занимање</label>
-            
+                <label class="form-label" for="form3Example1m">{{ 'addform.profession' | translate }}</label>
+
                 <input name="v10" placeholder="{{ editNode.profession }}"  [(ngModel)]="editNode.profession" type="text" id="form3Example1m" class="form-control form-control-lg" />
                 </div>
 
@@ -637,9 +563,8 @@
             </div>
             <div class="col-6">
               <div class="form-outline">
-                <label *ngIf="isEnglish()" class="form-label" for="form3Example1m">Other</label>
-                <label *ngIf="isSerbian()" class="form-label" for="form3Example1m">Остало</label>
-            
+                <label class="form-label" for="form3Example1m">{{ 'addform.other' | translate }}</label>
+
                 <input name="v10" placeholder="{{ editNode.other }}"  [(ngModel)]="editNode.other" type="text" id="form3Example1m" class="form-control form-control-lg" />
                 </div>
             </div>
@@ -660,14 +585,13 @@
           
           
           <div class="row">
-            <label class="label1 text-center" for="jbg"  >
-              Edit 
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
-                <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
-              </svg>
             
-            </label>
-            <input id="jbg" name="v123" [(ngModel)]="editNode.picture" type="file" hidden > 
+             
+                
+              <input name="v15"  (change)="onFileSelected2($event)" accept="image/*" type="file" id="form3Example1m" class="form-control form-control-lg" />
+          
+        
+            
 
             
             

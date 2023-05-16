@@ -20,6 +20,7 @@
         ]
     },
     "include": [
-        "src/**/*"
-    ]
+        "src/**/*.ts",
+        "src/express.d.ts" // Add this line to include the custom type declaration
+      ]
 }

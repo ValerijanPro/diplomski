@@ -1,68 +1,39 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { GenerateNewComponent } from '../generate-new/generate-new.component';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RelationsService {
 
-  //s -> sibling
-  //f -> father
-  //m -> mother
-  //c -> child
   uri = 'http://localhost:4000';
   constructor(private http: HttpClient) { 
   }
-/*  
-  parsePath(node,str, gender){
-    let ret = [];
+
+  getNodeWithId(id){
+    return(GenerateNewComponent.getAllNodes().get(id));
+  }
+
+  getLeftMostSibling(node){
     let tmp = node;
-    for(let i=0; i<str.length && tmp!=null; i++){
-      let c = str.charAt(i);
-      if(c=='s') tmp = tmp.sibling;
-      else if(c=='m') tmp = tmp.mother;
-      else if(c=='f') tmp = tmp.father;
-      else if(c=='c') tmp = tmp.child;
-    }
-    if(tmp==null ) return null;
-    let a = tmp;
-    
-    while(a!=null){
-      if(tmp.gender == gender) ret.push(tmp);
-      a = tmp.prevSibling;
-    }
-    a = tmp.nextSibling;
-    while(a!=null){
-      if(tmp.gender == gender) ret.push(tmp);
-      a = tmp.nextSibling;
-    }
-    return ret;
+    while(tmp.prevSibling!=null) tmp=tmp.prevSibling;
+    return tmp;
   }
-
-  initRelations(){
-    this.relations = new Map();
-    this.relations.set("father", "f");
-    this.relations.set("mother", "m");
-    this.relations.set("son", "c");
-    this.relations.set("daughter", "c");
-    this.relations.set("grandfather",)
-
-  }
-  */
-
- // relations: Map<string, string>;
- getRelative(relativeName, node){
+  getRelative(relativeName, node){
   let ret = [];
   let tmp = node;
-  if(relativeName=="father" || relativeName=="отац"){
+  if(relativeName=="father"){
+    node = this.getLeftMostSibling(node);
     if(node.father!=null)
-      ret.push(node.father);
+      ret.push(this.getNodeWithId(node.father));
   }
-  if(relativeName=="mother" || relativeName=="мајка"){
+  if(relativeName=="mother"){
+    node = this.getLeftMostSibling(node);
     if(node.mother!=null)
-      ret.push(node.mother);
+      ret.push(this.getNodeWithId(node.mother));
   }
-  if(relativeName=="son" || relativeName=="син"){
+  if(relativeName=="son"){
     for(let t = 0; t<tmp.children.length; t++){
       let c = tmp.children[t];
       while(c!=null){
@@ -75,7 +46,7 @@ export class RelationsService {
     }
     
   }
-  if(relativeName=="daughter" || relativeName=="ћерка"){
+  if(relativeName=="daughter"){
     for(let t = 0; t<tmp.children.length; t++){
       let c = tmp.children[t];
       while(c!=null){
@@ -88,67 +59,72 @@ export class RelationsService {
     }
     
   }
-  if(relativeName=="grandfather" || relativeName=="деда"){
-     let a = node.mother;
-     let b = node.father;
+  if(relativeName=="grandfather"){
+     node = this.getLeftMostSibling(node);
+     let a = this.getNodeWithId(node.mother);
+     let b = this.getNodeWithId(node.father);
      if(a!=null)
       if(a.father!=null)
-        ret.push(a.father);
+        ret.push(this.getNodeWithId(a.father));
      
      if(b!=null)
       if(b.father!=null)
-        ret.push(b.father);
+        ret.push(this.getNodeWithId(b.father));
      
     
   }
-  if(relativeName=="grandmother" || relativeName=="баба"){
-    let a = node.mother;
-    let b = node.father;
+  if(relativeName=="grandmother"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
+    let b = this.getNodeWithId(node.father);
     if(a!=null)
       if(a.mother!=null)
-        ret.push(a.mother);
+        ret.push(this.getNodeWithId(a.mother));
     
     if(b!=null)
       if(b.mother!=null)
-        ret.push(b.mother);
+        ret.push(this.getNodeWithId(b.mother));
     
     
   }
-  if(relativeName=="great grandfather" || relativeName=="прадеда"){
-    let a = node.mother;
-    let b = node.father;
+  if(relativeName=="great grandfather"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
+    let b = this.getNodeWithId(node.father);
     if(a!=null){
-     let x = a.mother;
-     let y = a.father;
-     if(x!=null) if(x.father!=null)ret.push(x.father);
-     if(y!=null) if(y.father!=null)ret.push(y.father);
+     let x = this.getNodeWithId(a.mother);
+     let y = this.getNodeWithId(a.father);
+     if(x!=null) if(x.father!=null)ret.push(this.getNodeWithId(x.father));
+     if(y!=null) if(y.father!=null)ret.push(this.getNodeWithId(y.father));
     }
     if(b!=null){
-      let x = b.mother;
-      let y = b.father;
-      if(x!=null) if(x.father!=null) ret.push(x.father);
-      if(y!=null) if(y.father!=null) ret.push(y.father);
+      let x = this.getNodeWithId(b.mother);
+      let y = this.getNodeWithId(b.father);
+      if(x!=null) if(x.father!=null)ret.push(this.getNodeWithId(x.father));
+      if(y!=null) if(y.father!=null)ret.push(this.getNodeWithId(y.father));
     }
     
   }
-  if(relativeName=="great grandmother" || relativeName=="прабаба"){
-    let a = node.mother;
-    let b = node.father;
+  if(relativeName=="great grandmother"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
+    let b = this.getNodeWithId(node.father);
     if(a!=null){
-     let x = a.mother;
-     let y = a.father;
-     if(x!=null) if(x.mother!=null)ret.push(x.mother);
-     if(y!=null) if(y.mother!=null)ret.push(y.mother);
+     let x = this.getNodeWithId(a.mother);
+     let y = this.getNodeWithId(a.father);
+     if(x!=null) if(x.mother!=null)ret.push(this.getNodeWithId(x.mother));
+     if(y!=null) if(y.mother!=null)ret.push(this.getNodeWithId(y.mother));
     }
     if(b!=null){
-      let x = b.mother;
-      let y = b.father;
-      if(x!=null) if(x.mother!=null) ret.push(x.mother);
-      if(y!=null) if(y.mother!=null) ret.push(y.mother);
+      let x = this.getNodeWithId(b.mother);
+      let y = this.getNodeWithId(b.father);
+      if(x!=null) if(x.mother!=null)ret.push(this.getNodeWithId(x.mother));
+      if(y!=null) if(y.mother!=null)ret.push(this.getNodeWithId(y.mother));
     }
    
   }
-  if(relativeName=="great great grandfather" || relativeName=="чукундеда"){
+  if(relativeName=="great great grandfather"){
+    node = this.getLeftMostSibling(node);
     let a = node.mother;
     let b = node.father;
     if(a!=null){
@@ -201,7 +177,8 @@ export class RelationsService {
      }
     
   }
-  if(relativeName=="great great grandmother" || relativeName=="чукунбаба"){
+  if(relativeName=="great great grandmother"){
+    node = this.getLeftMostSibling(node);
     let a = node.mother;
     let b = node.father;
     if(a!=null){
@@ -255,12 +232,13 @@ export class RelationsService {
     
   }
 
-  if(relativeName=="uncle" || relativeName=="стриц"){
-    let a = node.father;
+  if(relativeName=="стриц"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.father);
     if(a!=null){
       let b = a;
       while(b!=null){
-        if(b.gender=="male") ret.push(b);
+        if(b.gender=="male" && b.id != node.father) ret.push(b);
         b = b.prevSibling;
       }
       b = a.nextSibling;
@@ -271,9 +249,10 @@ export class RelationsService {
     }
   }
 
-  if(relativeName=="aunt" || relativeName=="стрина"){
-    let a = node.father;
-    let c = node.mother;
+  if(relativeName=="стрина"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.father);
+    let c = this.getNodeWithId(node.mother)
     if(a!=null){
       let b = a;
       while(b!=null){
@@ -294,12 +273,13 @@ export class RelationsService {
     }
   }
 
-  if(relativeName=="uncle" || relativeName=="ујак"){
-    let a = node.mother;
+  if(relativeName=="ујак"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
     if(a!=null){
       let b = a;
       while(b!=null){
-        if(b.gender=="male") ret.push(b);
+        if(b.gender=="male" && b.id != node.father) ret.push(b);
         b = b.prevSibling;
       }
       b = a.nextSibling;
@@ -310,8 +290,9 @@ export class RelationsService {
     }
   }
 
-  if(relativeName=="aunt" || relativeName=="ујна"){
-    let a = node.mother;
+  if(relativeName=="ујна"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
 
     if(a!=null){
       let b = a;
@@ -333,9 +314,10 @@ export class RelationsService {
     }
   }
 
-  if(relativeName=="aunt" || relativeName=="тетка"){
-    let a = node.mother;
-    let b = node.father;
+  if(relativeName=="тетка"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
+    let b = this.getNodeWithId(node.father);
 
     let x = a;
     while(x!=null){
@@ -365,9 +347,10 @@ export class RelationsService {
     
   }
 
-  if(relativeName=="uncle" || relativeName=="теча"){
-    let a = node.mother;
-    let b = node.father;
+  if(relativeName=="теча"){
+    node = this.getLeftMostSibling(node);
+    let a = this.getNodeWithId(node.mother);
+    let b = this.getNodeWithId(node.father);
 
     let x = a;
     while(x!=null){
@@ -412,12 +395,12 @@ export class RelationsService {
   if(relativeName=="brother"){
     let a = node;
     while(a!=null){
-      if(a.gender=="male") ret.push(a);
+      if(a.gender=="male" && a.id != node.id) ret.push(a);
       a = a.prevSibling;
     }
     a=node.nextSibling;
     while(a!=null){
-      if(a.gender=="male") ret.push(a);
+      if(a.gender=="male" && a.id != node.id) ret.push(a);
       a = a.nextSibling;
     }
   }
@@ -425,25 +408,47 @@ export class RelationsService {
   if(relativeName=="sister"){
     let a = node;
     while(a!=null){
-      if(a.gender=="female") ret.push(a);
+      if(a.gender=="female"&& a.id != node.id) ret.push(a);
       a = a.prevSibling;
     }
     a=node.nextSibling;
     while(a!=null){
-      if(a.gender=="female") ret.push(a);
+      if(a.gender=="female" && a.id != node.id) ret.push(a);
       a = a.nextSibling;
     }
   }
   return ret;
- }
-
- saveNode(node){
-  const data={
-    node: node
   }
-  return this.http.post(`${this.uri}/saveNode`, data);
- }
- loadTree(){
 
- }
+  saveTree(tree) {
+
+    console.log(tree.picture);
+    const body = {
+      tree: {
+        id: tree.id,
+        name: tree.name,
+        surname: tree.surname,
+        gender: tree.gender,
+        date_of_birth: tree.date_of_birth,
+        picture: tree.picture
+      }
+    };
+  
+
+  
+    this.http.post(`${this.uri}/saveTree`, body)
+      .subscribe(
+        (response) => {
+          console.log('Tree saved successfully:', response);
+          // Handle success
+        },
+        (error) => {
+          console.error('Failed to save tree:', error);
+          // Handle error
+        }
+      );
+  }
+  loadTree(){
+
+  }
 }

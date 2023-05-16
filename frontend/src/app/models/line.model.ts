@@ -1,9 +1,11 @@
+import { PeopleTree } from "./people.model";
+
 export class Line {
 
 
 
     constructor(private ctx: CanvasRenderingContext2D,
-      public x0:number,public y0:number,public x1:number,public y1:number, public love: boolean, public kind: string) {
+      public x0:number,public y0:number,public x1:number,public y1:number, public love: boolean, public kind: string, public toNode:PeopleTree) {
      
     }
   

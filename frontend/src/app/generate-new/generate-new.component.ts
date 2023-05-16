@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, Renderer2, OnInit } from '@angular/core';
 import { PeopleTree } from '../models/people.model';
 import {  ViewChild, ElementRef } from '@angular/core';
 import { Line } from '../models/line.model';
@@ -6,6 +6,8 @@ import { NgbCalendar, NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
 import { ViewportScroller } from '@angular/common';
 import { saveAs } from 'file-saver';
 import { RelationsService } from '../services/relations.service';
+import {TranslateService} from "@ngx-translate/core";
+
 @Component({
   selector: 'app-generate-new',
   templateUrl: './generate-new.component.html',
@@ -13,7 +15,18 @@ import { RelationsService } from '../services/relations.service';
 })
 export class GenerateNewComponent implements OnInit{
 
-  constructor(private scroller: ViewportScroller, private servis: RelationsService) { }
+  constructor(private scroller: ViewportScroller, 
+    private servis: RelationsService, private renderer: Renderer2,
+    private translate: TranslateService
+    ) {
+      let tmp = sessionStorage.getItem("language");
+      if(tmp == null) {
+        tmp = 'en';
+      }
+      translate.setDefaultLang(tmp);
+      translate.use(tmp);
+
+     }
 
   @ViewChild('canvas', { static: true }) 
   canvas: ElementRef<HTMLCanvasElement>;  
@@ -25,11 +38,37 @@ export class GenerateNewComponent implements OnInit{
 
   @ViewChild('modalChoice') modalChoice; 
 
-
   ngOnInit(): void {
     this.ctx = this.canvas.nativeElement.getContext('2d');
-   
-    
+    this.initCountries();
+    this.countriesFiltered = this.countries;
+    this.filter = null;
+    this.enteredMyself = false;
+    this.addNew = false;
+    this.display = 'none';
+    this.startListeningClicks = false;
+    this.showClickMessage = false;
+    this.errorMissingInformation = null;
+
+    this.undoHistory = [];
+    this.undoNode = null;
+    this.canEdit = false;
+    this.editNode = null;
+    this.movingNode = false;
+    this.female = 'female';
+    this.slob= 0;
+    this.highlightRelatives = [];
+    this.delay = 0;
+    this.showStatistics = false;
+    this.newPersonPicture = "";
+    GenerateNewComponent.allNodes = new Map();
+    this.onlyOnce = false;
+    this.errorAlertMessage = "";
+    this.showErrorAlert = false;
+    this.successfulSave = false;
+  }
+
+  initCountries(){
     this.countries = [ 
       {name: 'Afghanistan', code: 'AF'}, 
       {name: 'Åland Islands', code: 'AX'}, 
@@ -276,25 +315,6 @@ export class GenerateNewComponent implements OnInit{
       {name: 'Zambia', code: 'ZM'}, 
       {name: 'Zimbabwe', code: 'ZW'} 
     ];
-    this.countriesFiltered = this.countries;
-    this.filter = null;
-    this.enteredMyself = false;
-    this.addNew = false;
-    this.display = 'none';
-    this.startListeningClicks = false;
-    this.showClickMessage = false;
-    this.errorMissingInformation = null;
-    this.canUndo = false;
-    this.undoNode = null;
-    this.canEdit = false;
-    this.editNode = null;
-    this.female = 'female';
-    this.language = sessionStorage.getItem("language");
-    this.slob= 0;
-    this.highlightRelatives = [];
-    this.delay = 0;
-    
-    this.showStatistics = false;
   }
 
   static getAllNodes(){
@@ -315,8 +335,13 @@ export class GenerateNewComponent implements OnInit{
   startListeningClicks: boolean;
   showClickMessage: boolean;
   errorMissingInformation: string;
-  canUndo: boolean;
+
+  //create
+  undoHistory: PeopleTree[];
   undoNode: PeopleTree;
+
+  movingNode : boolean;
+  onlyOnce : boolean;
 
   private static allNodes: Map<Number, PeopleTree>;
 
@@ -329,8 +354,6 @@ export class GenerateNewComponent implements OnInit{
   
    editPersonDateOfBirth: Date;
    editPersonDateOfDeath: Date;
-   
-   
 
   //new person info
   newPersonName: string;
@@ -348,8 +371,7 @@ export class GenerateNewComponent implements OnInit{
   countriesTemp;
   filter: string;
 
-  //languages
-  language: string;
+
   
   //search
   showSearchForm: boolean;
@@ -362,152 +384,158 @@ export class GenerateNewComponent implements OnInit{
   
 
 
-  isEnglish(){
-    return this.language=="English" || this.language==null;
-  }
-  isSerbian(){
-    return this.language=="Srpski";
-  }
+  
   odabranaSlicica(e){
     let slika = [];
     if(e.target.files.length>0){
       slika = e.target.files[0];
-      
     }
-    
-    
   }
 
   myURL;
-
   slob: number;
   successfulExport: boolean;
+
+  showErrorAlert: boolean;
+  errorAlertMessage: String;
+
+  successfulSave: boolean;
+
+  closeAlert2(){
+    this.showErrorAlert = false;
+  }
+
+  closeAlert3(){
+    this.successfulExport = false;
+  }
+  closeAlert4(){
+    this.successfulSave = false;
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    const reader: FileReader = new FileReader();
+
+    reader.onload = (e: any) => {
+      this.newPersonPicture = e.target.result;
+      console.log("ASD "+this.newPersonPicture);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  onFileSelected2(event: any) {
+    const file: File = event.target.files[0];
+    const reader: FileReader = new FileReader();
+
+    reader.onload = (e: any) => {
+      this.editNode.picture = e.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  }
 
   addNewPerson(){
 
     if(this.newPersonName==null){
-      if(this.isEnglish())
-        this.errorMissingInformation = "Please enter a name."
-      if(this.isSerbian())
-        this.errorMissingInformation = "Молимо унесите име."
+      this.errorMissingInformation = this.translate.instant('error.firstNameMissing');
+      window.scroll({ 
+        top: 0, 
+        left: 0, 
+        behavior: 'smooth' 
+      });
       return;
     }
     if(this.newPersonSurname==null){
-      if(this.isEnglish())
-        this.errorMissingInformation = "Please enter a surname."
-      if(this.isSerbian())
-        this.errorMissingInformation = "Молимо унесите презиме."
+      this.errorMissingInformation = this.translate.instant('error.lastNameMissing');
+      window.scroll({ 
+        top: 0, 
+        left: 0, 
+        behavior: 'smooth' 
+      });
       return;
     }
     if(this.newPersonDateOfBirth==null){
-      if(this.isEnglish())
-        this.errorMissingInformation = "Please enter a date of birth."
-      if(this.isSerbian())
-        this.errorMissingInformation = "Молимо унесите датум рођења."
+      this.errorMissingInformation = this.translate.instant('error.dateOfBirthMissing');
+      window.scroll({ 
+        top: 0, 
+        left: 0, 
+        behavior: 'smooth' 
+      });
       return;
     }
     if(this.newPersonGender==null){
-      if(this.isEnglish())
-        this.errorMissingInformation = "Please choose a gender."
-      if(this.isSerbian())
-        this.errorMissingInformation = "Молимо одаберите пол."
-      return;
-    }
-    if(this.newPersonKind=='mother' && (this.newPersonGender.toLowerCase()=='male' || this.newPersonGender.toLowerCase()=='мушки')  ){
-      if(this.isEnglish())
-        this.errorMissingInformation = "Mother has to be female."
-      if(this.isSerbian())
-        this.errorMissingInformation = "Мајка мора да буде женско."
-      return;
-    }
-    if(this.newPersonKind=='father' && (this.newPersonGender.toLowerCase()=='female' || this.newPersonGender.toLowerCase()=='женски')){
-      if(this.isEnglish())
-        this.errorMissingInformation = "Father has to be male."
-      if(this.isSerbian())
-        this.errorMissingInformation = "Отац мора да буде мушко."
-     
+      this.errorMissingInformation = this.translate.instant('error.genderMissing');
+      window.scroll({ 
+        top: 0, 
+        left: 0, 
+        behavior: 'smooth' 
+      });
       return;
     }
 
     this.errorMissingInformation = null;
 
-  this.newPersonDateOfBirth = new Date(this.newPersonDateOfBirth);
-  if(this.newPersonDateOfDeath!=null)
-    this.newPersonDateOfDeath = new Date(this.newPersonDateOfDeath);
-    
-  //console.log("POL "+this.slob+this.newPersonGender);
-  console.log(this.newPersonPicture==null);
-  console.log(this.newPersonPicture);
-  this.slob = this.slob + 1;
-  if(this.newPersonPicture==null){
-    //console.log("EVO NAS BURAZENGIJO");
-   
-    if(this.newPersonGender.toLowerCase()=="female" || this.newPersonGender.toLowerCase()=="женски" ) this.newPersonPicture = "assets/images/woman.png";
-    else  if(this.newPersonGender.toLowerCase()=="male"|| this.newPersonGender.toLowerCase()=="мушки") this.newPersonPicture = "assets/images/man.png";
-   // console.log(this.newPersonPicture);
-  }  
-  else{
-    
-    if(this.newPersonPicture.lastIndexOf("images")!=-1)this.newPersonPicture = this.newPersonPicture.substring(this.newPersonPicture.lastIndexOf("images")+7);
-    if(this.newPersonPicture.lastIndexOf("fakepath")!=-1)this.newPersonPicture =  this.newPersonPicture.substring(this.newPersonPicture.lastIndexOf("fakepath") + 9);
-    
-    if(this.newPersonPicture.charAt(0)!='a')this.newPersonPicture = "assets/images/"+this.newPersonPicture;
-    //console.log(this.newPersonPicture);
-  }
+    this.newPersonDateOfBirth = new Date(this.newPersonDateOfBirth);
+    if(this.newPersonDateOfDeath!=null)
+      this.newPersonDateOfDeath = new Date(this.newPersonDateOfDeath);
+      
 
+    this.slob = this.slob + 1;
+    //picture
+    if(this.newPersonPicture==""){
+    //add generic picture according to sex
+      if(this.newPersonGender.toLowerCase()=="female" || this.newPersonGender.toLowerCase()=="женски" ) this.newPersonPicture = "assets/images/woman.png";
+      else  if(this.newPersonGender.toLowerCase()=="male"|| this.newPersonGender.toLowerCase()=="мушки") this.newPersonPicture = "assets/images/man.png";
+    }  
+ 
     if(!this.enteredMyself){
-    this.ctx.canvas.width=window.innerWidth;
-    this.ctx.canvas.height=window.innerHeight;
-    this.ctx.canvas.addEventListener('mousedown', (e)=> {
-      this.getCursorPosition(this.ctx.canvas, e);});
-    this.ctx.canvas.addEventListener('click', (e)=> {
-        this.clickedOnCanvas(this.ctx.canvas, e);});
-    
-    this.me = new PeopleTree(this.ctx);
-    this.me.x = this.ctx.canvas.width/2;
-    this.me.y = this.ctx.canvas.height/2;
-    
-    
+      this.ctx.canvas.width=window.innerWidth;
+      this.ctx.canvas.height=window.innerHeight;
+      this.ctx.canvas.addEventListener('mousedown', (e)=> {
+        this.getCursorPosition(this.ctx.canvas, e);});
+      this.ctx.canvas.addEventListener('click', (e)=> {
+          this.clickedOnCanvas(this.ctx.canvas, e);});
+      //set my info
+      this.me = new PeopleTree(this.ctx);
+      this.me.x = this.ctx.canvas.width/2;
+      this.me.y = this.ctx.canvas.height/2;
 
-    this.me.name = this.newPersonName;
-    this.me.surname = this.newPersonSurname;
-    this.me.date_of_birth = this.newPersonDateOfBirth;
-    this.me.date_of_death = this.newPersonDateOfDeath;
-    this.me.place_of_birth = this.newPersonPlaceOfBirth;
-    this.me.profession = this.newPersonProfession;
-    this.me.gender = this.newPersonGender;
-    this.me.picture = this.newPersonPicture;
-    if(PeopleTree.broj==null) PeopleTree.broj = 0;
-    this.me.id = PeopleTree.broj+1;
-    PeopleTree.broj=PeopleTree.broj + 1;
-    this.me.draw();
-    
-    setInterval(()=>{
-      this.bfsWithRedraw(this.me);
-    }, 100);
-      this.enteredMyself = true;
-      this.newPersonPicture = null;
-      return;
+      this.me.name = this.newPersonName;
+      this.me.surname = this.newPersonSurname;
+      this.me.date_of_birth = this.newPersonDateOfBirth;
+      this.me.date_of_death = this.newPersonDateOfDeath;
+      this.me.place_of_birth = this.newPersonPlaceOfBirth;
+      this.me.profession = this.newPersonProfession;
+      this.me.gender = this.newPersonGender;
+      this.me.picture = this.newPersonPicture;
+      if(PeopleTree.broj==null) PeopleTree.broj = 0;
+      this.me.id = PeopleTree.broj+1;
+      PeopleTree.broj=PeopleTree.broj + 1;
+      this.me.draw();
+      this.addNodeWithId(this.me.id, this.me);
+      setInterval(()=>{
+        this.bfsWithRedraw(this.me);
+      }, 100);
+        this.enteredMyself = true;
+        this.newPersonPicture = "";
+        this.nullifyInputs();
+        return;
     }
+    //scroll to top
     window.scroll({ 
       top: 0, 
       left: 0, 
       behavior: 'smooth' 
     }); 
-  // console.log(this.newPersonPicture);
-   
-
-    //this.startListeningClicks = true;
     this.showClickMessage = true;
     this.startListeningClicks = true;
     this.showAddForm=false;
-    //console.log("Restart");
-    
-    
   }
   
   editPerson(b){
-    //console.log("SKROZ DOLE");
+    
+    console.log("SKROZ DOLE");
     if(b==1){
       this.canEdit = true;
       this.editNode = this.chosenNode;
@@ -515,11 +543,12 @@ export class GenerateNewComponent implements OnInit{
       this.display = 'none';
       //el.scrollIntoView({behavior: 'smooth'});
      // window.scrollTo(0, document.body.scrollHeight);
-       document.getElementById("editFields").scrollIntoView({
+       /*document.getElementById("editFields").scrollIntoView({
         behavior: "smooth",
         block: "start",
         inline: "nearest"
-      });
+      });*/
+      console.log("asd");
     }
     else{
       if(this.editPersonDateOfBirth!=null)this.editNode.date_of_birth = new Date(this.editPersonDateOfBirth);
@@ -535,31 +564,46 @@ export class GenerateNewComponent implements OnInit{
     }
     
   }
+  //export to PNG
+  export() {
+      var canvas = document.getElementById("sloba") as HTMLCanvasElement;
+      var context = canvas.getContext("2d");
 
-  export(){
-    var canvas = document.getElementById("sloba") as HTMLCanvasElement;
-    canvas.toBlob(function(blob) {
+      var backgroundImageURL = "assets/images/treeImage.jpg";
+
+      var backgroundImage = new Image();
+
+      backgroundImage.src = backgroundImageURL;
+
+      backgroundImage.onload = function() {
+
+      context.save();
+
+      context.globalCompositeOperation = "destination-over";
+
+      context.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+      context.restore();
+
+      canvas.toBlob(function(blob) {
         saveAs(blob, "myFamilyTree.png");
-    });
-    
+      });
 
-  setTimeout(() => {
-    this.successfulExport = true;
+      
+    };
+    setTimeout(() => {
+      this.successfulExport = true;
 
-  // 👇️ if you used `display` to hide element
-  // el.style.display = 'block';
-  }, 1000);
-    
-  }
+      // 👇️ if you used `display` to hide element
+      // el.style.display = 'block';
+    }, 1000);
+}
   closeAlert(){
     this.successfulExport = false;
-   
   }
   closeAlert1(){
-    this.showStatistics = false;
-   
+    this.showStatistics = false;  
   }
-
   //statistics
   //TODO:
   statistics(){
@@ -573,22 +617,29 @@ export class GenerateNewComponent implements OnInit{
   }
   calculateStatistics(start){
 
-    let numberOfNodes = 0;
-    let sumOfLifespans = 0;
-    let sumOfChildren = 0;
+   let numberOfPeopleWithChildren = 0;
+   let sumOfLifespans = 0;
+   let sumOfChildren = 0; 
+   let numberOfDeadPeople = 0;
+   const visited = new Set();
 
-    const visited = new Set();
     const queue = [start];
     visited.add(start);
-    while (queue.length > 0) {
-        const node = queue.shift(); // mutates the queue
 
-        numberOfNodes = numberOfNodes + 1;
-        if(node.children!=null) sumOfChildren = sumOfChildren + node.children.length;
+    while (queue.length > 0) {
+
+        const node = queue.shift(); // mutates the queue
+        if(node==undefined) break;
+
+        
+        if(node.children!=null) {
+          sumOfChildren = sumOfChildren + node.children.length;
+          numberOfPeopleWithChildren = numberOfPeopleWithChildren + 1;
+        }
         if(node.date_of_birth!=null && node.date_of_death!=null) {
           // To calculate the time difference of two dates
           var Difference_In_Time = node.date_of_death.getTime() - node.date_of_birth.getTime();
-            
+          numberOfDeadPeople = numberOfDeadPeople + 1;
           // To calculate the no. of days between two dates
           var Difference_In_Years = Difference_In_Time / (1000 * 3600 *24 * 365);
 
@@ -596,44 +647,44 @@ export class GenerateNewComponent implements OnInit{
         }
 
         const destinations = [];
-        if(node.mother != null) destinations.push(node.mother);
-        if(node.father != null) destinations.push(node.father);
+
+        if(this.checkIfNodeWithIdExists(node.mother)) {
+          destinations.push(this.getNodeWithId(node.mother));
+        }
+        if(this.checkIfNodeWithIdExists(node.father)) {
+          destinations.push(this.getNodeWithId(node.father));
+        }
         if(node.children.length!=0 ) {
           node.children.forEach(element => {
             destinations.push(element);
           });
         }
-        if(node.nextSibling != null) destinations.push(node.nextSibling);
+        if(node.nextSibling!=null) {
+          destinations.push(node.nextSibling);
+        }
         if(node.partner.length!=0 ) {
           node.partner.forEach(element => {
             destinations.push(element);
           });
         }
-  
         for (const destination of destinations) {
             if (!visited.has(destination)) {
                 visited.add(destination);
                 queue.push(destination);
             }
-           
+          
         }
-  
-        
+
+      
     }
-    return [sumOfLifespans/numberOfNodes, sumOfChildren/numberOfNodes];
+  return [sumOfLifespans/numberOfDeadPeople, sumOfChildren/numberOfPeopleWithChildren];
   }
   
   //save and load
   saveTree(){
     this.me.owner = "valjko";
-    //console.log("Dobra dan");
-    //let lin = new Line(this.ctx,0,0,1,1,false,"sibling");
-    //this.me.lines.push(lin);
-    //this.me.mother.children = [];
-    this.servis.saveNode(this.me).subscribe((e)=>{
-      //console.log(e); 
-      //console.log("Zdravo");
-    })
+    this.servis.saveTree(this.me);
+    this.successfulSave = true;
   }
 
   //search
@@ -643,9 +694,8 @@ export class GenerateNewComponent implements OnInit{
       return;
     }
     this.showSearchForm = true;
+    this.onlyOnce = true;
     this.display = "none";
-    
-    
     
   }
 
@@ -654,7 +704,6 @@ export class GenerateNewComponent implements OnInit{
   highlight(b){
     if(b==1){
      this.highlightRelatives = this.servis.getRelative("mother",this.chosenNode);
-      //console.log("Majka "+this.highlightRelatives.length );
     }
     else if(b==2){
       this.highlightRelatives = this.servis.getRelative("father",this.chosenNode);
@@ -690,12 +739,10 @@ export class GenerateNewComponent implements OnInit{
       this.highlightRelatives = this.servis.getRelative("daughter",this.chosenNode);
     }
     else if(b==13){
-      if(this.isEnglish())this.highlightRelatives = this.servis.getRelative("uncle",this.chosenNode);
-      if(this.isSerbian())this.highlightRelatives = this.servis.getRelative("ујак",this.chosenNode);
+      this.highlightRelatives = this.servis.getRelative("ујак",this.chosenNode);
     }
     else if(b==14){
-      if(this.isEnglish())this.highlightRelatives = this.servis.getRelative("aunt",this.chosenNode);
-      if(this.isSerbian())this.highlightRelatives = this.servis.getRelative("ујна",this.chosenNode);
+      this.highlightRelatives = this.servis.getRelative("ујна",this.chosenNode);
     }
     else if(b==15){
       this.highlightRelatives = this.servis.getRelative("стриц",this.chosenNode);
@@ -703,7 +750,7 @@ export class GenerateNewComponent implements OnInit{
     else if(b==16){
       this.highlightRelatives = this.servis.getRelative("стрина",this.chosenNode);
     }
-
+    console.log("Highlighting "+b);
   }
 
   //edit
@@ -715,10 +762,13 @@ export class GenerateNewComponent implements OnInit{
   }
 
   undoPerson(){
+    this.undoHistory.pop();
     this.undoNode.removeNode();
-    this.canUndo = false;
+    this.undoNode = null;
+    if(this.undoHistory.length>0) 
+      this.undoNode = this.undoHistory.slice(-1)[0];
   }
-  
+
   choosePersonKind(n){
     if(n==6){
       //close (Not now)
@@ -726,9 +776,7 @@ export class GenerateNewComponent implements OnInit{
       this.display = "none";
       return;
     }
-      
-    
-    if(n==1){
+    else if(n==1){
       
       let w = this.chosenNode;
       while(w.prevSibling!=null){
@@ -737,10 +785,12 @@ export class GenerateNewComponent implements OnInit{
      
       
       if(w.mother!=null){
-        if(this.isEnglish())
-          this.errorAddMessage = "Mother already added."
-        if(this.isSerbian())
-          this.errorAddMessage = "Мајка је већ додата."
+        this.errorAddMessage = this.translate.instant('error.motherAlreadyAdded');
+        window.scroll({ 
+          top: 0, 
+          left: 0, 
+          behavior: 'smooth' 
+        }); 
         return;
       }
       
@@ -753,11 +803,12 @@ export class GenerateNewComponent implements OnInit{
         w = w.prevSibling;
       }
       if(w.father!=null){
-        if(this.isEnglish())
-          this.errorAddMessage = "Father already added."
-        if(this.isSerbian())
-          this.errorAddMessage = "Отац је већ додат."
-        return;
+        this.errorAddMessage = this.translate.instant('error.fatherAlreadyAdded');
+        window.scroll({ 
+          top: 0, 
+          left: 0, 
+          behavior: 'smooth' 
+        });
         return;
       }
       this.newPersonKind = 'father';
@@ -771,12 +822,18 @@ export class GenerateNewComponent implements OnInit{
     else if (n==5){
       this.newPersonKind = 'partner';
     }
+    else if (n==8){
+      this.renderer.setStyle(document.body, 'cursor', 'move');
+      this.display = "none";
+      this.movingNode = true;
+      return;
+    }
     this.showAddForm=true;
     window.scroll({ 
       top: 0, 
       left: 0, 
       behavior: 'smooth' 
-    }); 
+    });
     this.errorAddMessage = null;
     this.display = "none";
   }
@@ -784,94 +841,115 @@ export class GenerateNewComponent implements OnInit{
   delay:number;
 
   bfsWithRedraw(start){
-     
     this.ctx.clearRect(0, 0, this.ctx.canvas.width,  this.ctx.canvas.height);
+    if(this.canEdit) {
+      /*
+      if(this.editNode.picture.lastIndexOf("images")!=-1)this.editNode.picture = this.editNode.picture.substring(this.editNode.picture.lastIndexOf("images")+7);
+      if(this.editNode.picture.lastIndexOf("fakepath")!=-1)this.editNode.picture =  this.editNode.picture.substring(this.editNode.picture.lastIndexOf("fakepath") + 9);
+      if(this.editNode.picture.charAt(0)!='a')this.editNode.picture = "assets/images/"+this.editNode.picture;
+      */
+    }
 
-      if(this.canEdit) {
-       
-        if(this.editNode.picture.lastIndexOf("images")!=-1)this.editNode.picture = this.editNode.picture.substring(this.editNode.picture.lastIndexOf("images")+7);
-        if(this.editNode.picture.lastIndexOf("fakepath")!=-1)this.editNode.picture =  this.editNode.picture.substring(this.editNode.picture.lastIndexOf("fakepath") + 9);
-        if(this.editNode.picture.charAt(0)!='a')this.editNode.picture = "assets/images/"+this.editNode.picture;
-      }
+    if(this.onlyOnce){
+      window.scrollTo(0, document.body.scrollHeight);
+      this.onlyOnce = false;
+    }
 
-      const visited = new Set();
-      
-      const queue = [start];
-      visited.add(start);
+    const visited = new Set();
+    
+    const queue = [start];
+    visited.add(start);
 
-      while (queue.length > 0) {
+    while (queue.length > 0) {
 
-          const node = queue.shift(); // mutates the queue
-          //node.highlighted = false;
-         // console.log(this.delay);
-          if(this.highlightRelatives.includes(node) ) {
-            
-            if(this.delay<12)node.drawHighlightedGlitter(true);
-            else node.drawHighlightedGlitter(false);
-          }
+        const node = queue.shift(); // mutates the queue
+        if(node==undefined) break;
+        //highlight the searched nodes
+        if(this.highlightRelatives.includes(node) ) {
+          if(this.delay<12)node.drawHighlightedGlitter(true);
+          else node.drawHighlightedGlitter(false);
+        }
+        else  
+          node.draw();
+
+        this.delay=this.delay+1;
+        if(this.delay>=25) this.delay=0;
+        const destinations = [];
+
+        if(this.checkIfNodeWithIdExists(node.mother)) {
+          //console.log("mother exists");
+          destinations.push(this.getNodeWithId(node.mother));
+        }
+        if(this.checkIfNodeWithIdExists(node.father)) {
+          //console.log("father exists");
+          destinations.push(this.getNodeWithId(node.father));
+        }
+        if(node.children.length!=0 ) {
+          node.children.forEach(element => {
+            destinations.push(element);
+          });
+        }
+        if(node.nextSibling!=null) {
+          destinations.push(node.nextSibling);
+        }
+        if(node.partner.length!=0 ) {
+          node.partner.forEach(element => {
+            destinations.push(element);
+          });
+        }
+        for (const destination of destinations) {
+            if (!visited.has(destination)) {
+                visited.add(destination);
+                queue.push(destination);
+            }
           
-          else node.draw();
-          this.delay=this.delay+1;
-          if(this.delay>=25) this.delay=0;
-          
-          //console.log(this.switch+" KISA");
-          const destinations = [];
-          if(node.mother != null) destinations.push(node.mother);
-          if(node.father != null) destinations.push(node.father);
-          if(node.children.length!=0 ) {
-            node.children.forEach(element => {
-              destinations.push(element);
-            });
-          }
-          if(node.nextSibling != null) destinations.push(node.nextSibling);
-          if(node.partner.length!=0 ) {
-            node.partner.forEach(element => {
-              destinations.push(element);
-            });
-          }
+        }
 
-
-          
-
-          for (const destination of destinations) {
-
-            
-              
-              if (!visited.has(destination)) {
-                  visited.add(destination);
-                  queue.push(destination);
-              }
-            
-          }
-
-          
-      }
-  
+        
+    }
   }
 
   pomeri(br){
     if(br==1){
       //left
-      this.me.pomeriSve(-50,0);
-     // this.ctx.canvas.width = this.ctx.canvas.width+50;
+      this.me.pomeriSve(50,0);
+      this.ctx.canvas.width = this.ctx.canvas.width+50;
     }
     else if(br==2){
       //up
-      this.me.pomeriSve(0,-50);
-     // this.ctx.canvas.height = this.ctx.canvas.height+50;
+      this.me.pomeriSve(0,50);
+      this.ctx.canvas.height = this.ctx.canvas.height+50;
     }
     else if(br==3){
       //right
-      this.me.pomeriSve(50,0);
+      //this.me.pomeriSve(50,0);
       this.ctx.canvas.width = this.ctx.canvas.width+50;
     }
     else if(br==4){
       //down
-      this.me.pomeriSve(0,50);
+      //this.me.pomeriSve(0,50);
       this.ctx.canvas.height = this.ctx.canvas.height+50;
     }
     
   }
+
+  getNodeWithId(id){
+    return(GenerateNewComponent.allNodes.get(id));
+  }
+
+  addNodeWithId(id, node){
+    GenerateNewComponent.allNodes.set(id, node);
+  }
+
+  getNumberOfNodes(){
+    return GenerateNewComponent.allNodes.size;
+  }
+
+  checkIfNodeWithIdExists(id){
+    return GenerateNewComponent.allNodes.has(id);
+  }
+
+  //where to add then new node
   clickedOnCanvas(canvas,event){
     if(!this.startListeningClicks){
       return;
@@ -889,9 +967,10 @@ export class GenerateNewComponent implements OnInit{
       this.undoNode = this.chosenNode.addMother(
         this.newPersonName, this.newPersonSurname, this.newPersonDateOfBirth,
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
-        this.newPersonPicture, this.newPersonProfession, x,y, ovaj
+        this.newPersonPicture, this.newPersonProfession, x,y, ovaj, this.translate
       );
-      GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
+      console.log("finished adding new person "+this.chosenNode.name + "."+this.undoNode.lines[0]);
+ 
     }
     else if(this.newPersonKind == 'father'){
       let ovaj = this.chosenNode;
@@ -901,9 +980,8 @@ export class GenerateNewComponent implements OnInit{
       this.undoNode = this.chosenNode.addFather(
         this.newPersonName, this.newPersonSurname, this.newPersonDateOfBirth,
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
-        this.newPersonPicture, this.newPersonProfession,x,y, ovaj
-        );
-        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
+        this.newPersonPicture, this.newPersonProfession, x,y, ovaj, this.translate
+      );
     }
     else if(this.newPersonKind == 'sibling'){
       let ovaj = this.chosenNode;
@@ -913,34 +991,65 @@ export class GenerateNewComponent implements OnInit{
       this.undoNode = this.chosenNode.addSibling(
         this.newPersonName, this.newPersonSurname, this.newPersonDateOfBirth,
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
-        this.newPersonPicture, this.newPersonProfession,x,y,ovaj
+        this.newPersonPicture, this.newPersonProfession,x,y,ovaj, this.translate
         );
-        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     else if(this.newPersonKind == 'child'){
       this.undoNode = this.chosenNode.addChild(
-        this.newPersonName, this.newPersonSurname, this.newPersonDateOfBirth,
-        this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
-        this.newPersonPicture, this.newPersonProfession,x,y
+          this.newPersonName, this.newPersonSurname, this.newPersonDateOfBirth,
+          this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
+          this.newPersonPicture, this.newPersonProfession,x,y, this.translate
         );
-        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
     else if(this.newPersonKind == 'partner'){
       this.undoNode = this.chosenNode.addPartner(
         this.newPersonName, this.newPersonSurname, this.newPersonDateOfBirth,
         this.newPersonDateOfDeath, this.newPersonGender, this.newPersonPlaceOfBirth,
-        this.newPersonPicture, this.newPersonProfession,x,y
+        this.newPersonPicture, this.newPersonProfession,x,y, this.translate
         );
-        GenerateNewComponent.allNodes.set(this.undoNode.id, this.undoNode);
     }
-    
-    
-    this.canUndo = true;
+    this.undoHistory.push(this.undoNode);
+    this.newPersonPicture = "";
+    this.addNodeWithId(this.undoNode.id, this.undoNode);
+    this.nullifyInputs();
+
     this.startListeningClicks = false;
     this.showClickMessage = false;
-   
+    //console.log("finished adding new person "+this.chosenNode.name + "."+this.undoNode.lines[0]);
+  }
+  nullifyInputs() {
+    this.newPersonDateOfBirth=null;
+    this.newPersonDateOfDeath=null;
+    this.newPersonGender=null;
+    this.newPersonKind=null;
+    this.newPersonName=null;
+    this.newPersonPlaceOfBirth=null;
+    this.newPersonProfession=null;
+    this.newPersonSurname=null;
   }
 
+  moveNode(node, x, y, moveNodeItself){
+    if(moveNodeItself){
+      node.x = x;
+      node.y = y;
+    }
+    for(let l of node.lines){
+      //l.x0 = x;
+      
+      let tt = node.izracunaj( node.x, node.y, l.toNode.x, l.toNode.y);
+      
+      // l.y0 = y;
+      let t = l.toNode.izracunaj(l.toNode.x, l.toNode.y, node.x, node.y);
+      l.x0 = tt[0];
+      l.y0 = tt[1];
+
+      l.x1=t[0];
+      l.y1=t[1];
+    }
+  }
+  
+
+  //waiting a node to be clicked or somewhere else
   getCursorPosition(canvas, event) {
     if(this.startListeningClicks){
       return;
@@ -948,78 +1057,123 @@ export class GenerateNewComponent implements OnInit{
     if(this.canEdit) {
       return;
     }
-
-    
+    //if we are waiting for the click to which to move the node
+    if(this.movingNode){
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      let tmp = this.bfs(this.me, x, y);
+      if(tmp!=null){
+        //dont overlap nodes
+        this.showErrorAlert = true;
+        this.errorAlertMessage = "Don't overlap nodes";
+        window.scroll({ 
+          top: 0, 
+          left: 0, 
+          behavior: 'smooth' 
+        });
+        //console.log("Dont overlap nodes");
+      }
+      else{
+        //move node and its lines
+        this.moveNode(this.chosenNode, x, y, true);
+        //if children exist, move lines of children
+        if(this.chosenNode.children.length!=0){
+          let tmp =(this.chosenNode.children[0]);
+          this.moveNode(tmp, x, y, false);
+        }
+        //if partners exist, move lines of partner
+        if(this.chosenNode.partner.length!=0){
+          for(let p of this.chosenNode.partner){
+            this.moveNode(p, x, y, false);
+          }
+        }
+        //if siblings exist, move lines of sibling
+        if(this.chosenNode.nextSibling!=null){
+          let tmp =(this.chosenNode.nextSibling);
+          this.moveNode(tmp, x, y, false);
+        }
+        if(this.chosenNode.prevSibling!=null){
+          let tmp =(this.chosenNode.prevSibling);
+          this.moveNode(tmp, x, y, false);
+        }
+      }
+      this.movingNode = false;
+      this.renderer.setStyle(document.body, 'cursor', 'default');
+      return;
+    }
+    //console.log("listening to clicks");
     
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    //console.log("x: " + x + " y: " + y)
-    //console.log(this.me.isInside(x,y));
     if(this.showAddForm){
       return;
     }
+    //get the clicked node
     this.chosenNode=this.bfs(this.me, x, y);
     if(this.chosenNode != null){
-      //this.showSearchForm = true;
       //highlight it
-      this.chosenNode.highlighted = true; 
-      //this.ctx.clearRect(0,0,this.ctx.canvas.width, this.ctx.canvas.height);
-      //this.chosenNode.draw();
+      this.chosenNode.highlighted = true;
+      //show the choosePersonKind colorful menu
       this.addNew= true;
+      //set the display to 'block' to show the colorful menu
       this.display = 'block';
     }
     else {
       this.showSearchForm = false;
       this.highlightRelatives = [];
     }
-
-    //console.log("da ? "+this.me.highlighted);
   }
  
+  //breadth first search of the family graph
+  //to find the node that was clicked
   bfs(start, x, y){
-  const visited = new Set();
+    const visited = new Set();
 
-  const queue = [start];
-  visited.add(start);
+    const queue = [start];
+    visited.add(start);
 
-  while (queue.length > 0) {
+    while (queue.length > 0) {
 
-      const node = queue.shift(); // mutates the queue
-      if (node.isInside(x,y))  {  
-        return node;
-      }
-      const destinations = [];
-      if(node.mother != null) destinations.push(node.mother);
-      if(node.father != null) destinations.push(node.father);
-      if(node.children.length!=0 ) {
-        node.children.forEach(element => {
-          destinations.push(element);
-        });
-      }
-      if(node.nextSibling != null) destinations.push(node.nextSibling);
-      if(node.partner.length!=0 ) {
-        node.partner.forEach(element => {
-          destinations.push(element);
-        });
-      }
+        const node = queue.shift(); // mutates the queue
+        if(node==undefined) break;
+        if (node.isInside(x,y))  {  
+          return node;
+        }
+        const destinations = [];
 
-      node.highlighted = false;
-
-      for (const destination of destinations) {
-
-         
+        if(this.checkIfNodeWithIdExists(node.mother)) {
+          destinations.push(this.getNodeWithId(node.mother));
+        }
+        if(this.checkIfNodeWithIdExists(node.father)) {
+          destinations.push(this.getNodeWithId(node.father));
+        }
+        if(node.children.length!=0 ) {
+          node.children.forEach(element => {
+            destinations.push(element);
+          });
+        }
+        if(node.nextSibling!=null) {
+          destinations.push(node.nextSibling);
+        }
+        if(node.partner.length!=0 ) {
+          node.partner.forEach(element => {
+            destinations.push(element);
+          });
+        }
+        node.highlighted = false;
+        for (const destination of destinations) {
+            if (!visited.has(destination)) {
+                visited.add(destination);
+                queue.push(destination);
+            }
           
-          if (!visited.has(destination)) {
-              visited.add(destination);
-              queue.push(destination);
-          }
-         
-      }
+        }
 
       
-  }
-  return null;
+    }
+    return null;
   }
 
   
