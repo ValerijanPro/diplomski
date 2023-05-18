@@ -60,6 +60,7 @@
 	"statistics.numberOfChildren": "Average number of children:",
 	"welcome.chooseLanguage": "Choose a language",
 	"welcome.generateNew": "Generate a new tree!",
+	"welcome.loadTree":"Load family tree",
 	"welcome.heading1": "Welcome to Family",
 	"welcome.heading2": "tree generator!",
 	"welcome.quit": "Quit"

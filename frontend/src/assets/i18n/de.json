@@ -60,6 +60,7 @@
 	"statistics.numberOfChildren": "Durchschnittliche Kinderzahl:",
 	"welcome.chooseLanguage": "Wählen Sie eine Sprache aus",
 	"welcome.generateNew": "Erstellen Sie einen neuen Baum!",
+	"welcome.loadTree": "Familienstammbaum laden",
 	"welcome.heading1": "Willkommen beim",
 	"welcome.heading2": "Stammbaum-Generator!",
 	"welcome.quit": "Verlassen"

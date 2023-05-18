@@ -60,6 +60,7 @@
 	"statistics.numberOfChildren": "Nombre moyen d'enfants :",
 	"welcome.chooseLanguage": "Choisissez une langue",
 	"welcome.generateNew": "Générez un nouvel arbre !",
+	"welcome.loadTree":"Charger l'arbre généalogique",
 	"welcome.heading1": "Bienvenue dans le générateur",
 	"welcome.heading2": "d'arbre généalogique !",
 	"welcome.quit": "Quitter"
